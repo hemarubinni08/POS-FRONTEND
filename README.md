@@ -1,2 +1,2 @@
 # POS-FRONTEND
-Started react Basics
+Started react Basics code
