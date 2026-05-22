@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+body {
+
+  margin: 0;
+
+  padding: 0;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  background-color: #E9EEF5;
+}
+
+* {
+
+  box-sizing: border-box;
+}
+
+/* COMMON COLORS */
+
+.primary-bg {
+
+  background: linear-gradient(
+    180deg,
+    #1e3c72,
+    #2a5298
+  );
+}
+
+.primary-btn {
+
+  background-color: #1e293b;
+}
+
+.primary-btn:hover {
+
+  background-color: #0f172a;
+}
+
+/* COMMON CARD */
+
+.card-ui {
+
+  background: white;
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.15);
+}
+
+/* COMMON INPUT */
+
+.input-ui {
+
+  width: 100%;
+
+  padding: 12px;
+
+  border-radius: 10px;
+
+  border: 1px solid #cbd5e1;
+
+  margin-bottom: 16px;
+}
+
+.input-ui:focus {
+
+  outline: none;
+
+  border-color: #1e293b;
+
+  box-shadow:
+    0 0 0 3px rgba(30, 41, 59, 0.15);
+}
+
+/* COMMON TITLE */
+
+.page-title {
+
+  font-size: 32px;
+
+  font-weight: bold;
+
+  color: #0f172a;
+}

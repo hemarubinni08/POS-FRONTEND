@@ -1,0 +1,138 @@
+const FormRenderer = ({ fields, form, setForm, options }) => {
+
+  const handleChange = (e) => {
+    setForm(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const toggle = (name, value) => {
+    setForm(prev => ({
+      ...prev,
+      [name]: prev[name].includes(value)
+        ? prev[name].filter(v => v !== value)
+        : [...prev[name], value]
+    }));
+  };
+
+  return (
+
+    <div className="space-y-4">
+
+      {fields.map(f => {
+
+        /* TEXT INPUT */
+
+        if (f.type === "text") {
+          return (
+
+            <div key={f.name}>
+
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                {f.label}
+              </label>
+
+              <input
+                name={f.name}
+                value={form[f.name]}
+                onChange={handleChange}
+                placeholder={f.label}
+                disabled={f.disabled}
+                className={`border p-3 w-full rounded-lg outline-none transition ${
+                  f.disabled
+                    ? "bg-gray-100 cursor-not-allowed text-gray-500"
+                    : "focus:ring-2 focus:ring-blue-400"
+                }`}
+              />
+
+            </div>
+          );
+        }
+
+        /* SELECT */
+
+        if (f.type === "select") {
+          return (
+
+            <div key={f.name}>
+
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                {f.label}
+              </label>
+
+              <select
+                name={f.name}
+                value={form[f.name]}
+                onChange={handleChange}
+                className="border p-3 w-full rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+              >
+
+                <option value="">
+                  Select {f.label}
+                </option>
+
+                {(options[f.name] || []).map(o => (
+                  <option
+                    key={o.identifier}
+                    value={o.identifier}
+                  >
+                    {o.label}
+                  </option>
+                ))}
+
+              </select>
+
+            </div>
+          );
+        }
+
+        /* MULTI CHECKBOX */
+
+        if (f.type === "multicheck") {
+          return (
+
+            <div key={f.name}>
+
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                {f.label}
+              </label>
+
+              <div className="border rounded-lg p-3 max-h-32 overflow-y-auto bg-gray-50">
+
+                {(options[f.name] || []).map(o => (
+
+                  <label
+                    key={o.identifier}
+                    className="flex items-center gap-2 py-1"
+                  >
+
+                    <input
+                      type="checkbox"
+                      checked={form[f.name].includes(o.identifier)}
+                      onChange={() => toggle(f.name, o.identifier)}
+                    />
+
+                    <span className="text-sm">
+                      {o.label}
+                    </span>
+
+                  </label>
+
+                ))}
+
+              </div>
+
+            </div>
+          );
+        }
+
+        return null;
+
+      })}
+
+    </div>
+  );
+};
+
+export default FormRenderer;
