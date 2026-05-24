@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 
 import ListPage from "../ListPage";
-import EditModal from "./Edit";
+import ProductEdit from "./Edit";
 
 const ProductList = () => {
     const keys = ["id", "identifier", "name", "brandName", "category", "unit", "description", "status"];
@@ -34,16 +34,18 @@ const ProductList = () => {
     }
   };
 
-    const handleUpdateSuccess = (updatedItem) => {
-        console.log("Updated:", updatedItem);
+  const [listUpdateHandler, setListUpdateHandler] = useState(null);
 
-        setIsModalOpen(false);
-    };
+  const handleUpdateSuccess = (updatedItem) => {
+    listUpdateHandler?.(updatedItem);
+
+    setIsModalOpen(false);
+  };
     
     return (
         <div>
-            <ListPage keys={keys} modelName={modelName} onEdit={handleEdit}/>
-            <EditModal
+            <ListPage keys={keys} modelName={modelName} onEdit={handleEdit} setListUpdateHandler={setListUpdateHandler}/>
+            <ProductEdit
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 item={selectedItem}

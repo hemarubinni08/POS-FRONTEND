@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import EditModal from "../EditModal";
@@ -7,7 +8,7 @@ import Models from "../../pages/dropdown/Models";
 import Categories from "../../pages/dropdown/Categories";
 import Units from "../../pages/dropdown/Units";
 
-const Edit = ({
+const ProductEdit = ({
   isOpen,
   onClose,
   item,
@@ -15,11 +16,9 @@ const Edit = ({
 }) => {
   const token = localStorage.getItem("token");
 
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({});
-  const [brands, setBrands] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [models, setModels] = useState([]);
-  const [units, setUnits] = useState([]);
 
   // Load selected item into form
   useEffect(() => {
@@ -27,39 +26,6 @@ const Edit = ({
       setFormData(item);
     }
   }, [item]);
-
-  // Fetch dropdown data
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const fetchData = async () => {
-      try {
-        const [b, c, m, u] = await Promise.all([
-          axios.get("http://localhost:8080/api/brands/list", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("http://localhost:8080/api/categories/list", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("http://localhost:8080/api/models/list", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("http://localhost:8080/api/units/list", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
-
-        setBrands(b.data || []);
-        setCategories(c.data || []);
-        setModels(m.data || []);
-        setUnits(u.data || []);
-      } catch (err) {
-        console.error("Dropdown load failed", err);
-      }
-    };
-
-    fetchData();
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -87,7 +53,6 @@ const Edit = ({
 
       onUpdateSuccess(formData);
       onClose();
-
     } catch (err) {
       console.error(err);
       alert("Update failed");
@@ -157,4 +122,4 @@ const Edit = ({
   );
 };
 
-export default Edit;
+export default ProductEdit;

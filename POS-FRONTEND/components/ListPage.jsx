@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const ListPage = ({ keys, modelName, onEdit }) => {
+const ListPage = ({ keys, modelName, onEdit, setListUpdateHandler }) => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -81,9 +81,23 @@ const ListPage = ({ keys, modelName, onEdit }) => {
     }
   };
 
+  const handleUpdateSuccess = (updatedItem) => {
+    setListData((prev) =>
+      prev.map((item) =>
+        item.identifier === updatedItem.identifier
+          ? updatedItem
+          : item
+      )
+    );
+  };
+
   useEffect(() => {
     fetchList();
   }, [modelName]);
+
+  useEffect(() => {
+    setListUpdateHandler?.(() => handleUpdateSuccess);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-blue-300 p-6">
@@ -173,7 +187,7 @@ const ListPage = ({ keys, modelName, onEdit }) => {
                         <div className="flex gap-2">
                           <button
                             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg shadow"
-                            onClick={() => onEdit(item.identifier)}
+                            onClick={() => onEdit(item.identifier, fetchList)}
                           >
                             Update
                           </button>
