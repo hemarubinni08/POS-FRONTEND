@@ -1,0 +1,55 @@
+import React, { useEffect, useState } from 'react';
+import { apiFetch } from '../../utils/apiFetch';
+import { API_BASE_URL } from '../../config/api.config';
+
+function SingleDropdown({ value, onChange, label, apiPath, required = false }) {
+    const [options, setOptions] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchOptions = async () => {
+            try {
+                const response = await apiFetch(`${API_BASE_URL}/api/${apiPath}/list`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        page: 0,
+                        sizePerPage: 100,
+                        sortDirection: 'ASC',
+                        sortField: 'identifier'
+                    })
+                });
+                if (!response) return;
+                const data = await response.json();
+                setOptions(data);
+            } catch (err) {
+                console.error(`Failed to fetch ${label}:`, err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOptions();
+    }, [apiPath]);
+
+    if (loading) return <p className='text-sm text-gray-400'>Loading {label}...</p>;
+
+    return (
+        <div className='flex flex-col gap-1'>
+            <label className='text-sm font-semibold text-gray-600'>{label}</label>
+            <select
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                required={required}
+                className='border border-gray-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition'
+            >
+                <option value=''>Select {label}</option>
+                {options.map((item) => (
+                    <option key={item.identifier} value={item.identifier}>
+                        {item.identifier}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+}
+
+export default SingleDropdown;
