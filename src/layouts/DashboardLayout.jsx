@@ -14,9 +14,10 @@ const DashboardLayout = () => {
 
   const fetchNodes = async () => {
     try {
-      const res = await api.get("/api/home");
+      const res = await api.get("/home");
       setNodes(res.data);
     } catch (err) {
+      console.log(err);
       localStorage.clear();
       navigate("/");
     }
@@ -24,14 +25,11 @@ const DashboardLayout = () => {
 
   return (
     <div className="min-h-screen bg-[#E9EEF5]">
-
       <Sidebar nodes={nodes} />
       <Navbar />
-
       <div className="ml-[240px] pt-20 p-10">
         <Outlet />
       </div>
-
     </div>
   );
 };

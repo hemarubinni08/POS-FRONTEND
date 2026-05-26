@@ -37,7 +37,7 @@ const Register = () => {
 
       const response = await api.post(
 
-        '/api/role/list',
+        '/role/list',
 
         {
           page: 0,
@@ -190,7 +190,7 @@ const Register = () => {
 
       const response = await api.post(
 
-        '/api/user/add',
+        '/user/add',
 
         user
       )

@@ -1,195 +1,70 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
-import {
-  getBrands,
-  getModels,
-  getUnits,
-  getCategories
-} from "../../services/masterData";
-import FormRenderer from "../../components/common/FormRenderer";
+import EditPage from "../../components/common/EditPage";
+import { getBrands, getModels, getUnits, getCategories } from "../../components/common/DataDropdowns";
 
-const ProductEdit = ({ identifier, onSuccess, onCancel }) => {
+const ProductEdit = () => {
 
-  const [form, setForm] = useState({
-    identifier: "",
-    productName: "",
-    brand: "",
-    model: "",
-    unit: "",
-    categories: []
-  });
+  const { identifier } = useParams();
+  const navigate = useNavigate();
 
+  const [form, setForm] = useState(null);
   const [options, setOptions] = useState({});
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    load();
+    loadMaster();
+  }, [identifier]);
 
-  const loadData = async () => {
-    try {
+  const load = async () => {
+    const res = await api.get("/product/get", {
+      params: { identifier }
+    });
 
-      const res = await api.get("/api/product/get", {
-        params: { identifier }
-      });
-
-      setForm({
-        ...res.data,
-        categories: res.data.categories || []
-      });
-
-      setOptions({
-        brand: (await getBrands()).map(b => ({
-          identifier: b.identifier,
-          label: b.brandName
-        })),
-
-        model: (await getModels()).map(m => ({
-          identifier: m.identifier,
-          label: m.modelName
-        })),
-
-        unit: (await getUnits()).map(u => ({
-          identifier: u.identifier,
-          label: u.unitName
-        })),
-
-        categories: (await getCategories()).map(c => ({
-          identifier: c.identifier,
-          label: c.name
-        }))
-      });
-
-    } catch {
-      setError("Failed to load product");
-    }
+    setForm(res.data);
   };
 
-  const fields = [
-    {
-      name: "identifier",
-      label: "Identifier",
-      type: "text",
-      disabled: true
-    },
-    {
-      name: "productName",
-      label: "Product Name",
-      type: "text"
-    },
-    {
-      name: "brand",
-      label: "Brand",
-      type: "select"
-    },
-    {
-      name: "model",
-      label: "Model",
-      type: "select"
-    },
-    {
-      name: "unit",
-      label: "Unit",
-      type: "select"
-    },
-    {
-      name: "categories",
-      label: "Categories",
-      type: "multicheck"
-    }
-  ];
-
-  const validate = () => {
-    if (!form.productName.trim()) return "Product Name required";
-    if (!form.brand) return "Brand required";
-    if (!form.model) return "Model required";
-    if (!form.unit) return "Unit required";
-    if (!form.categories.length) return "Select categories";
-    return null;
+  const loadMaster = async () => {
+    setOptions({
+      brand: (await getBrands()).map(b => ({ identifier: b.identifier, label: b.brandName })),
+      model: (await getModels()).map(m => ({ identifier: m.identifier, label: m.modelName })),
+      unit: (await getUnits()).map(u => ({ identifier: u.identifier, label: u.unitName })),
+      categories: (await getCategories()).map(c => ({ identifier: c.identifier, label: c.name }))
+    });
   };
 
-  const submit = async () => {
-
-    setError("");
-    setSuccess("");
-
-    const validation = validate();
-
-    if (validation) {
-      setError(validation);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-
-      const res = await api.post("/api/product/update", form);
-
-      const data = res.data;
-
-      if (data.success === false) {
-        setError(data.message || "Update failed");
-        return;
-      }
-
-      setSuccess("Product updated successfully");
-
-      setTimeout(() => {
-        onSuccess();
-      }, 700);
-
-    } catch {
-      setError("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!form) return <div className="p-6">Loading...</div>;
 
   return (
-    <div className="space-y-4">
+    <EditPage
+      title="Edit Product"
+      modelName="product"
+      options={options}
+      initialForm={form}
 
-      {error && (
-        <div className="bg-red-100 text-red-700 p-3 rounded">
-          {error}
-        </div>
-      )}
+      fields={[
+        { name: "identifier", label: "Identifier", type: "text", disabled: true },
+        { name: "productName", label: "Product Name", type: "text" },
+        { name: "brand", label: "Brand", type: "select" },
+        { name: "model", label: "Model", type: "select" },
+        { name: "unit", label: "Unit", type: "select" },
+        { name: "categories", label: "Categories", type: "multicheck" }
+      ]}
 
-      {success && (
-        <div className="bg-green-100 text-green-700 p-3 rounded">
-          {success}
-        </div>
-      )}
+      validate={(form) => {
+        if (!form.identifier) return "Identifier required";
+        if (!form.productName) return "Product name required";
+        if (!form.brand) return "Brand required";
+        if (!form.model) return "Model required";
+        if (!form.unit) return "Unit required";
+        if (!form.categories?.length) return "Select at least one category";
+        return null;
+      }}
 
-      <FormRenderer
-        fields={fields}
-        form={form}
-        setForm={setForm}
-        options={options}
-      />
-
-      <div className="flex gap-3">
-
-        <button
-          onClick={submit}
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded w-full"
-        >
-          {loading ? "Updating..." : "Update Product"}
-        </button>
-
-        <button
-          onClick={onCancel}
-          className="bg-gray-300 hover:bg-gray-400 p-3 rounded w-full"
-        >
-          Cancel
-        </button>
-
-      </div>
-
-    </div>
+      onSuccess={() => navigate("/product")}
+      onCancel={() => navigate("/product")}
+    />
   );
 };
 

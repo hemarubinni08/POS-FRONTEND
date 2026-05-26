@@ -42,7 +42,7 @@ const Login = () => {
 
       const response = await api.post(
 
-        '/api/authenticate',
+        '/authenticate',
 
         credentials
       )

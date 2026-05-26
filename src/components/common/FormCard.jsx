@@ -1,7 +1,10 @@
-const FormCard = ({ title, children, actions }) => {
+const FormCard = ({
+  title,
+  children,
+  actions
+}) => {
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-xl shadow p-6">
-
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
         {title}
       </h2>
@@ -15,7 +18,6 @@ const FormCard = ({ title, children, actions }) => {
           {actions}
         </div>
       )}
-
     </div>
   );
 };

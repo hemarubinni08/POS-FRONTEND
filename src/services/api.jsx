@@ -1,42 +1,46 @@
-import axios from 'axios'
+import axios from "axios";
 
 const api = axios.create({
 
-  baseURL: 'http://localhost:8080',
-})
+  baseURL: "http://localhost:8080/api",
+
+});
 
 api.interceptors.request.use(
 
   (config) => {
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
-    // DO NOT SEND TOKEN FOR PUBLIC APIS
+    /* PUBLIC URLS */
 
     const publicUrls = [
 
-      '/api/authenticate',
-      '/api/user/add',
-      '/api/role/list',
-      '/api/validateToken'
-    ]
+      "/authenticate",
+      "/user/add",
+      "/role/list",
+      "/validateToken"
 
-    const isPublic =
-      publicUrls.some(url =>
-        config.url.includes(url)
-      )
+    ];
+
+    const isPublic = publicUrls.some(url =>
+      config.url.includes(url)
+    );
+
+    /* ADD TOKEN */
 
     if (token && !isPublic) {
 
       config.headers.Authorization =
-        `Bearer ${token}`
+        `Bearer ${token}`;
+
     }
 
-    return config
+    return config;
   },
 
   (error) => Promise.reject(error)
-)
+);
 
 api.interceptors.response.use(
 
@@ -44,9 +48,7 @@ api.interceptors.response.use(
 
   (error) => {
 
-    // ONLY REDIRECT IF TOKEN EXISTS
-
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     if (
 
@@ -57,13 +59,14 @@ api.interceptors.response.use(
       )
     ) {
 
-      localStorage.clear()
+      localStorage.clear();
 
-      window.location.href = '/'
+      window.location.href = "/";
+
     }
 
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
-export default api
+export default api;

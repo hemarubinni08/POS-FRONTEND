@@ -2,6 +2,7 @@ const ActionButtons = ({
   onEdit,
   onDelete,
   onToggle,
+  isActive,
 }) => {
   return (
     <div className="flex gap-2 justify-center">
@@ -23,6 +24,20 @@ const ActionButtons = ({
           Delete
         </button>
       )}
+
+      {onToggle && (
+        <button
+          onClick={onToggle}
+          className={`px-3 py-1 text-xs rounded-md text-white transition ${
+            isActive
+              ? "bg-yellow-600 hover:bg-yellow-700"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
+        >
+          {isActive ? "Disable" : "Enable"}
+        </button>
+      )}
+
     </div>
   );
 };
