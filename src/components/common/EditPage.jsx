@@ -3,6 +3,7 @@ import api from "../../services/api";
 import FormRenderer from "./FormRenderer";
 
 const EditPage = ({
+
   title,
   modelName,
   fields,
@@ -11,80 +12,214 @@ const EditPage = ({
   validate,
   onSuccess,
   onCancel
+
 }) => {
 
-  const [form, setForm] = useState({});
-  const [error, setError] = useState("");
+  const [form, setForm] = useState(initialForm);
+
   const [loading, setLoading] = useState(false);
 
-  /* SAFE INIT */
+  const [error, setError] = useState("");
+
+  const [success, setSuccess] = useState("");
+
+  /* UPDATE FORM WHEN DATA CHANGES */
+
   useEffect(() => {
-    if (initialForm) {
-      setForm(initialForm);
-    }
+
+    setForm(initialForm);
+
   }, [initialForm]);
 
   /* SUBMIT */
-  const submit = async () => {
+
+  const handleSubmit = async () => {
 
     setError("");
+    setSuccess("");
 
-    const err = validate?.(form);
-    if (err) {
-      setError(err);
-      return;
+    if (validate) {
+
+      const validationError = validate(form);
+
+      if (validationError) {
+
+        setError(validationError);
+        return;
+      }
     }
 
     setLoading(true);
 
     try {
-      await api.post(`/${modelName}/update`, form);
 
-      onSuccess?.();
+      const res = await api.post(
+        `/${modelName}/update`,
+        form
+      );
+
+      if (res.data?.success === false) {
+
+        setError(
+          res.data.message || "Update failed"
+        );
+
+        return;
+      }
+
+      setSuccess("Updated successfully");
+
+      setTimeout(() => {
+
+        if (onSuccess) {
+
+          onSuccess();
+        }
+
+      }, 700);
 
     } catch (e) {
-      setError("Update failed");
+
+      setError("Something went wrong");
+
     } finally {
+
       setLoading(false);
     }
   };
 
+  if (!form) {
+
+    return (
+
+      <div className="flex justify-center items-center h-[60vh]">
+
+        <div className="animate-spin rounded-full h-14 w-14 border-4 border-blue-500 border-t-transparent"></div>
+
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-xl mx-auto bg-white p-6 shadow rounded">
 
-      <h2 className="text-xl font-bold mb-4">
-        {title}
-      </h2>
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 p-6">
 
-      {error && (
-        <p className="text-red-600 mb-3">
-          {error}
-        </p>
-      )}
+      <div className="max-w-4xl mx-auto">
 
-      <FormRenderer
-        fields={fields}
-        form={form}
-        setForm={setForm}
-        options={options}
-      />
+        {/* CARD */}
 
-      <div className="flex gap-3 mt-4">
+        <div className="bg-white/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden border border-white/40">
 
-        <button
-          onClick={submit}
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded w-full"
-        >
-          {loading ? "Updating..." : "Update"}
-        </button>
+          {/* HEADER */}
 
-        <button
-          onClick={onCancel}
-          className="bg-gray-400 text-white px-4 py-2 rounded w-full"
-        >
-          Cancel
-        </button>
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
+
+            <h2 className="text-3xl font-bold text-white">
+              {title}
+            </h2>
+
+            <p className="text-blue-100 mt-1 text-sm">
+              Update and manage your details
+            </p>
+
+          </div>
+
+          {/* BODY */}
+
+          <div className="p-8 space-y-6">
+
+            {/* ERROR */}
+
+            {error && (
+
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl shadow-sm">
+
+                <div className="font-semibold">
+                  Error
+                </div>
+
+                <div className="text-sm mt-1">
+                  {error}
+                </div>
+
+              </div>
+            )}
+
+            {/* SUCCESS */}
+
+            {success && (
+
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-2xl shadow-sm">
+
+                <div className="font-semibold">
+                  Success
+                </div>
+
+                <div className="text-sm mt-1">
+                  {success}
+                </div>
+
+              </div>
+            )}
+
+            {/* FORM */}
+
+            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+
+              <FormRenderer
+                fields={fields}
+                form={form}
+                setForm={setForm}
+                options={options}
+              />
+
+            </div>
+
+            {/* BUTTONS */}
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className={`flex-1 py-3 rounded-2xl font-semibold text-white transition-all duration-300 shadow-lg ${
+                  loading
+                    ? "bg-blue-300 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-[1.02] hover:shadow-xl"
+                }`}
+              >
+
+                {loading ? (
+
+                  <div className="flex items-center justify-center gap-2">
+
+                    <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+
+                    Updating...
+
+                  </div>
+
+                ) : (
+
+                  "Update"
+
+                )}
+
+              </button>
+
+              <button
+                onClick={onCancel}
+                disabled={loading}
+                className="flex-1 py-3 rounded-2xl font-semibold bg-gray-200 hover:bg-gray-300 transition-all duration-300 text-gray-700"
+              >
+                Cancel
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
 
       </div>
 

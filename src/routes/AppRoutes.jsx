@@ -26,6 +26,10 @@ import CategoryList from "../pages/category/CategoryList";
 import CategoryAdd from "../pages/category/CategoryAdd";
 import CategoryEdit from "../pages/category/CategoryEdit";
 
+import NodeList from "../pages/node/NodeList";
+import NodeAdd from "../pages/node/NodeAdd";
+import NodeEdit from "../pages/node/NodeEdit";
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -62,6 +66,14 @@ const AppRoutes = () => {
           <Route path="/category/add" element={<CategoryAdd/>} />
           <Route path="/category/edit/:identifier" element={<CategoryEdit />} />
 
+          {/* NODE */}
+          <Route path="/node" element={<NodeList />} />
+          <Route path="/node/list" element={<Navigate to="/node" replace />} />
+          <Route path="/node/add" element={<NodeAdd />} />
+          <Route path="/node/edit/:identifier" element={<NodeEdit />} />
+
+          {/* ROLE */}
+        
         </Route>
 
       </Routes>
