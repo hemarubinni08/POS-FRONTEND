@@ -22,7 +22,7 @@ const FormRenderer = ({ fields, form, setForm, options }) => {
 
       {fields.map(f => {
 
-        /* TEXT INPUT */
+        /* TEXT */
 
         if (f.type === "text") {
           return (
@@ -34,8 +34,9 @@ const FormRenderer = ({ fields, form, setForm, options }) => {
               </label>
 
               <input
+                type="text"
                 name={f.name}
-                value={form[f.name]}
+                value={form[f.name] ?? ""}
                 onChange={handleChange}
                 placeholder={f.label}
                 disabled={f.disabled}
@@ -63,7 +64,7 @@ const FormRenderer = ({ fields, form, setForm, options }) => {
 
               <select
                 name={f.name}
-                value={form[f.name]}
+                value={form[f.name] ?? ""}
                 onChange={handleChange}
                 className="border p-3 w-full rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
               >
@@ -87,7 +88,44 @@ const FormRenderer = ({ fields, form, setForm, options }) => {
           );
         }
 
-        /* MULTI CHECKBOX */
+        /* STATUS DROPDOWN */
+
+        if (f.type === "status") {
+          return (
+
+            <div key={f.name}>
+
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                {f.label}
+              </label>
+
+              <select
+                name={f.name}
+                value={String(form[f.name])}
+                onChange={(e) =>
+                  setForm(prev => ({
+                    ...prev,
+                    [f.name]: e.target.value === "true"
+                  }))
+                }
+                className="border p-3 w-full rounded-lg outline-none focus:ring-2 focus:ring-green-400"
+              >
+
+                <option value="true">
+                  Active
+                </option>
+
+                <option value="false">
+                  Inactive
+                </option>
+
+              </select>
+
+            </div>
+          );
+        }
+
+        /* MULTICHECK */
 
         if (f.type === "multicheck") {
           return (
@@ -109,7 +147,7 @@ const FormRenderer = ({ fields, form, setForm, options }) => {
 
                     <input
                       type="checkbox"
-                      checked={form[f.name].includes(o.identifier)}
+                      checked={form[f.name]?.includes(o.identifier)}
                       onChange={() => toggle(f.name, o.identifier)}
                     />
 

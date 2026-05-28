@@ -30,6 +30,14 @@ import NodeList from "../pages/node/NodeList";
 import NodeAdd from "../pages/node/NodeAdd";
 import NodeEdit from "../pages/node/NodeEdit";
 
+import ShelfList from "../pages/shelf/ShelfList";
+import ShelfAdd from "../pages/shelf/ShelfAdd";
+import ShelfEdit from "../pages/shelf/ShelfEdit";
+
+import UnitList from "../pages/unit/UnitList";
+import UnitAdd from "../pages/unit/UnitAdd";
+import UnitEdit from "../pages/unit/UnitEdit";
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -72,8 +80,18 @@ const AppRoutes = () => {
           <Route path="/node/add" element={<NodeAdd />} />
           <Route path="/node/edit/:identifier" element={<NodeEdit />} />
 
-          {/* ROLE */}
-        
+          {/* SHELF */}
+          <Route path="/shelf" element={<ShelfList />} />
+          <Route path="/shelf/list" element={<Navigate to="/shelf" replace />} />
+          <Route path="/shelf/add" element={<ShelfAdd />} />
+          <Route path="/shelf/edit/:identifier" element={<ShelfEdit />} />
+
+          {/* UNIT */}
+          <Route path="/unit" element={<UnitList />} />
+          <Route path="/unit/list" element={<Navigate to="/unit" replace />} />
+          <Route path="/unit/add" element={<UnitAdd />} />
+          <Route path="/unit/edit/:identifier" element={<UnitEdit />} />
+      
         </Route>
 
       </Routes>
