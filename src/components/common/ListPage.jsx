@@ -3,71 +3,47 @@ import { useNavigate } from "react-router-dom";
 
 import api from "../../services/api";
 
-const ListPage = ({
-  modelName,
-  keys = [],
-  enableToggle = false,
-}) => {
+const ListPage = ({modelName,keys = [], enableToggle = false,}) => {
 
   const navigate = useNavigate();
-
   const [listData, setListData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   /* PAGINATION */
-
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-
   const sizePerPage = 10;
 
   /* LOAD DATA */
-
   const loadData = async (pageNo = page) => {
-
     try {
-
       setLoading(true);
-
       const res = await api.post(`/${modelName}/list`, {
-        page: pageNo,
-        sizePerPage,
-      });
-
+        page: pageNo,sizePerPage,});
       setListData(res.data.dtoList || []);
-
       setTotalPages(res.data.totalPages || 0);
 
     } catch (err) {
-
       console.log("List error:", err);
-
       alert("Failed to load data");
 
     } finally {
-
       setLoading(false);
     }
   };
 
   useEffect(() => {
-
     if (modelName) {
       loadData(page);
     }
-
   }, [modelName, page]);
-
   /* DELETE */
-
   const handleDelete = async (identifier) => {
-
     if (!window.confirm("Delete this item?")) {
       return;
     }
 
     try {
-
       await api.post(`/${modelName}/delete`, {
         identifier
       });
@@ -95,15 +71,12 @@ const ListPage = ({
       });
 
       const updated = [...listData];
-
       updated[index].status = !updated[index].status;
-
       setListData(updated);
 
     } catch (err) {
 
       console.log("Toggle error:", err);
-
       alert("Toggle failed");
     }
   };
@@ -120,58 +93,38 @@ const ListPage = ({
   return (
 
     <div className="bg-[#f4f6fb] min-h-screen p-6">
-
       {/* HEADER */}
-
       <div className="flex justify-between items-center mb-5">
-
         <h2 className="text-2xl font-bold text-gray-800">
-
-          {modelName.charAt(0).toUpperCase() +
-            modelName.slice(1)} List
-
+          {modelName.charAt(0).toUpperCase() + modelName.slice(1)} List
         </h2>
-
         <button
           onClick={() => navigate(`/${modelName}/add`)}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           + Add
         </button>
-
       </div>
 
       {/* LOADING */}
 
       {loading && (
-
         <div className="text-center py-10 text-gray-500">
           Loading...
         </div>
       )}
-
       {/* EMPTY */}
-
       {!loading && listData.length === 0 && (
-
         <div className="text-center py-10 text-gray-500">
           No Data Found
         </div>
       )}
-
       {/* TABLE */}
-
-      {!loading && listData.length > 0 && (
-
-        <>
+      {!loading && listData.length > 0 && (<>
           <div className="bg-white shadow rounded-lg overflow-x-auto">
-
             <table className="w-full text-sm">
-
               <thead className="bg-gray-900 text-white">
-
                 <tr>
-
                   {keys.map((k) => (
 
                     <th
@@ -184,31 +137,24 @@ const ListPage = ({
                   ))}
 
                   {enableToggle && (
-
                     <th className="p-3 text-center">
                       Status
                     </th>
                   )}
-
                   <th className="p-3 text-center">
                     Actions
                   </th>
 
                 </tr>
-
               </thead>
-
               <tbody>
-
                 {listData.map((item, index) => (
-
                   <tr
                     key={index}
                     className="border-b hover:bg-gray-50"
                   >
 
                     {keys.map((k) => (
-
                       <td
                         key={k}
                         className="p-3"
@@ -219,17 +165,11 @@ const ListPage = ({
                           : String(item?.[k] ?? "-")}
 
                       </td>
-
                     ))}
-
                     {/* TOGGLE */}
-
                     {enableToggle && (
-
                       <td className="p-3 text-center">
-
                         <div className="flex justify-center">
-
                           <button
                             onClick={() =>
                               handleToggle(item, index)
@@ -250,18 +190,13 @@ const ListPage = ({
                             />
 
                           </button>
-
                         </div>
-
                       </td>
                     )}
 
                     {/* ACTIONS */}
-
                     <td className="p-3">
-
                       <div className="flex gap-2 justify-center">
-
                         <button
                           onClick={() =>
                             navigate(
@@ -283,21 +218,14 @@ const ListPage = ({
                         </button>
 
                       </div>
-
                     </td>
-
                   </tr>
-
                 ))}
 
               </tbody>
-
             </table>
-
           </div>
-
           {/* PAGINATION */}
-
           <div className="flex justify-center items-center gap-4 mt-6">
 
             <button
@@ -311,9 +239,7 @@ const ListPage = ({
             </button>
 
             <span className="font-medium">
-
               Page {page + 1} / {totalPages}
-
             </span>
 
             <button

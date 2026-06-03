@@ -1,12 +1,6 @@
-const ActionButtons = ({
-  onEdit,
-  onDelete,
-  onToggle,
-  isActive,
-}) => {
+const ActionButtons = ({onEdit,onDelete,onToggle,isActive,}) => {
   return (
     <div className="flex gap-2 justify-center">
-
       {onEdit && (
         <button
           onClick={onEdit}
