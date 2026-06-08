@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/component/ProtectedRoute';
 import api from '../api/axios';
 
 const Login = () => {

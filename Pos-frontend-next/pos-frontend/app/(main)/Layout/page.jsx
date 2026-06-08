@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
+import ProtectedRoute from '@/component/ProtectedRoute';
 
 const avatarGradients = [
   'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -108,6 +109,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
+    <ProtectedRoute>
     <>
       {user && (
         <>
@@ -123,5 +125,5 @@ export default function DashboardPage() {
         </>
       )}
     </>
-  );
+  </ProtectedRoute>);
 }
