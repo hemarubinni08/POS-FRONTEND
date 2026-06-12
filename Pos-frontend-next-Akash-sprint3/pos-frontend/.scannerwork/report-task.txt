@@ -1,0 +1,6 @@
+projectKey=pos-frontend
+serverUrl=http://localhost:9000
+serverVersion=26.1.0.118079
+dashboardUrl=http://localhost:9000/dashboard?id=pos-frontend
+ceTaskId=b1866d13-6b72-4d5f-b76b-c8fc67ffd149
+ceTaskUrl=http://localhost:9000/api/ce/task?id=b1866d13-6b72-4d5f-b76b-c8fc67ffd149
