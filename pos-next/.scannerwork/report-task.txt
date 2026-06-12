@@ -1,0 +1,6 @@
+projectKey=pos-next
+serverUrl=http://localhost:9000
+serverVersion=26.1.0.118079
+dashboardUrl=http://localhost:9000/dashboard?id=pos-next
+ceTaskId=8a7028b6-b536-4c24-aaae-cc940a517877
+ceTaskUrl=http://localhost:9000/api/ce/task?id=8a7028b6-b536-4c24-aaae-cc940a517877
