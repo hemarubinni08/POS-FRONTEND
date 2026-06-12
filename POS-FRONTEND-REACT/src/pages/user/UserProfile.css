@@ -1,0 +1,108 @@
+/* Full page center layout */
+.profile-wrapper {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5f7fb;
+  font-family: Arial, sans-serif;
+}
+ 
+/* Card */
+.profile-card {
+  width: 420px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+ 
+/* Header section */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+ 
+/* Avatar circle */
+.profile-avatar {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+}
+ 
+/* Name title */
+.profile-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #111827;
+}
+ 
+/* Subtitle */
+.profile-header p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+ 
+/* Section wrapper */
+.profile-section {
+  margin-top: 10px;
+}
+ 
+/* Each row */
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+ 
+/* Left label */
+.profile-row span:first-child {
+  color: #6b7280;
+}
+ 
+/* Right value */
+.profile-row span:last-child {
+  color: #111827;
+  font-weight: 600;
+}
+ 
+/* Button */
+.profile-btn {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #111827;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+ 
+.profile-btn:hover {
+  background: #374151;
+}
+ 
+/* Loading state */
+.profile-loading {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  color: #6b7280;
+}
+ 
