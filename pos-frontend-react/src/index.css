@@ -1,0 +1,56 @@
+/* =====================================================
+   index.css  —  RetailPOS Corporate Theme
+   Palette: #363955 | #54668E | #879EC6 | #E8E8E8 | #F5F6E6
+   ===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ── Reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Body ── */
+body {
+  font-family: 'Segoe UI', 'Inter', sans-serif;
+  background-color: #F0F1F5;
+  color: #1e2235;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Links ── */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ── Form elements inherit font ── */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F5F6E6; }
+::-webkit-scrollbar-thumb { background: #879EC6; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #54668E; }
+
+/* ── Focus ring ── */
+*:focus-visible {
+  outline: 2px solid #879EC6;
+  outline-offset: 2px;
+}
+
+/* ── Table row hover ── */
+tbody tr:hover {
+  background: rgba(84, 102, 142, 0.04) !important;
+}
+
+/* ── Input focus ── */
+input:focus, select:focus, textarea:focus {
+  border-color: #879EC6 !important;
+  box-shadow: 0 0 0 3px rgba(135,158,198,0.15);
+}
