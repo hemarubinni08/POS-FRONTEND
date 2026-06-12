@@ -16,7 +16,6 @@ const MainLayout = ({children}) => {
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
  
-  // ================= MENU API =================
   const fetchMenu = useCallback(async () => {
     try {
       const res = await getListItems("node");

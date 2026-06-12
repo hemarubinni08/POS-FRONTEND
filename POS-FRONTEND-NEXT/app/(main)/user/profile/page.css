@@ -102,8 +102,6 @@
   color: #111827;
 }
 
-/* Force text colors in case globals.css overrides them */
-
 .profile-card,
 .profile-card div,
 .profile-card span,

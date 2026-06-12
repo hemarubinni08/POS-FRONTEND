@@ -7,8 +7,6 @@
   font-family: "Inter", sans-serif;
 }
 
-/* ================= LAYOUT ================= */
-
 .wrapper {
   display: flex;
   width: 100%;
@@ -16,8 +14,6 @@
   background: #f8fafc;
   overflow-x: hidden;
 }
-
-/* ================= SIDEBAR ================= */
 
 .sidebar {
   width: 260px;
@@ -29,15 +25,11 @@
   overflow-y: auto;
 }
 
-/* ================= MAIN CONTENT ================= */
-
 .main {
   margin-left: 260px;
   width: calc(100% - 260px);
   padding: 30px;
 }
-
-/* ================= TOPBAR ================= */
 
 .topbar {
   display: flex;
@@ -57,16 +49,12 @@
   color: #6b7280;
 }
 
-/* ================= SECTION CARD ================= */
-
 .section {
   background: #ffffff;
   padding: 24px;
   border-radius: 16px;
   box-shadow: 0 5px 18px rgba(0, 0, 0, 0.06);
 }
-
-/* ================= HEADER ================= */
 
 .tableHeader {
   display: flex;
@@ -80,8 +68,6 @@
   font-weight: 600;
   color: #111827;
 }
-
-/* ================= BUTTON ================= */
 
 .actionBtn {
   background: #111827;
@@ -97,8 +83,6 @@
 .actionBtn:hover {
   background: #000;
 }
-
-/* ================= TABLE ================= */
 
 .tableWrapper {
   overflow-x: auto;
@@ -133,15 +117,11 @@
   background: #f9fafb;
 }
 
-/* ================= EMPTY STATE ================= */
-
 .emptyRow {
   text-align: center;
   padding: 20px;
   color: #6b7280;
 }
-
-/* ================= PAGINATION ================= */
 
 .pagination {
   display: flex;
@@ -150,8 +130,6 @@
   gap: 8px;
   margin-top: 20px;
 }
-
-/* NORMAL BUTTON */
 
 .pageBtn {
   min-width: 38px;
@@ -173,13 +151,9 @@
   transition: all 0.2s ease;
 }
 
-/* HOVER */
-
 .pageBtn:hover:not(:disabled) {
   background: #f3f4f6;
 }
-
-/* ACTIVE PAGE */
 
 .activePage {
   background: #111827 !important;
@@ -187,21 +161,15 @@
   border-color: #111827 !important;
 }
 
-/* DISABLED */
-
 .pageBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* OPTIONAL TEXT */
-
 .pageNumber {
   font-weight: 600;
   color: #374151;
 }
-
-/* ================= STATUS SWITCH ================= */
 
 .switch {
   position: relative;
@@ -245,8 +213,6 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-/* ================= ACTION BUTTONS ================= */
-
 .editBtn {
   background: #3b82f6;
   color: white;
@@ -275,8 +241,6 @@ input:checked + .slider:before {
 .deleteBtn:hover {
   background: #dc2626;
 }
-
-/* ================= MODAL ================= */
 
 .modalOverlay {
   position: fixed;
@@ -333,8 +297,6 @@ input:checked + .slider:before {
   color: white;
 }
 
-/* ================= OVERLAY ================= */
-
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -345,8 +307,6 @@ input:checked + .slider:before {
   z-index: 999;
   animation: fadeIn 0.2s ease-in-out;
 }
-
-/* ================= MODAL BOX ================= */
 
 .modalBox {
   background: #ffffff;
@@ -364,16 +324,12 @@ input:checked + .slider:before {
   gap: 14px;
 }
 
-/* ================= TITLE ================= */
-
 .modalBox h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
   color: #222;
 }
-
-/* ================= SELECT DROPDOWN ================= */
 
 .modal select,
 .modalBox select {
@@ -423,14 +379,10 @@ input:checked + .slider:before {
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
-/* ================= ACTION BUTTONS ================= */
-
 .editBtn,
 .deleteBtn {
   display: none;
 }
-
-/* ================= ACTION MENU ================= */
 
 .actionMenu {
   position: relative;
@@ -501,8 +453,6 @@ input:checked + .slider:before {
   background: #fef2f2;
 }
 
-/* ================= CANCEL BUTTON ================= */
-
 .cancelBtn {
   margin-left: 10px;
   background: #e5e7eb;
@@ -521,8 +471,6 @@ input:checked + .slider:before {
 .cancelBtn:hover {
   background: #d1d5db;
 }
-
-/* ================= ANIMATIONS ================= */
 
 @keyframes fadeIn {
   from {

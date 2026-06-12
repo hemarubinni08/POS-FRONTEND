@@ -1,4 +1,4 @@
-/* ================= GLOBAL RESET ================= */
+
  
 * {
   margin: 0;
@@ -18,16 +18,12 @@ body {
   font-family: "Inter", sans-serif;
 }
  
-/* ================= WRAPPER ================= */
- 
 .wrapper {
   display: flex;
   min-height: 100vh;
   width: 100%;
   background: #f8fafc;
 }
- 
-/* ================= SIDEBAR ================= */
  
 .sidebar {
   width: 260px;
@@ -42,8 +38,6 @@ body {
   height: 100vh;
   overflow-y: auto;
 }
- 
-/* ================= LOGO ================= */
  
 .logoSection {
   display: flex;
@@ -80,8 +74,6 @@ body {
   color: #9ca3af;
 }
  
-/* ================= MENU ================= */
- 
 .menuContainer {
   flex: 1;
 }
@@ -97,7 +89,6 @@ body {
   list-style: none;
 }
  
-/* ✅ MERGED menuItem (only one version now) */
 .menuItem {
   width: 100%;
   display: flex;
@@ -132,8 +123,6 @@ body {
   justify-content: center;
   align-items: center;
 }
-
-/* ================= LOGOUT ================= */
  
 .logoutBtn {
   width: 100%;
@@ -150,7 +139,6 @@ body {
   background: rgba(255, 255, 255, 0.12);
 }
  
-/* ================= MAIN ================= */
  
 .main {
   flex: 1;
@@ -159,8 +147,6 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 }
- 
-/* ================= RESPONSIVE ================= */
  
 @media (max-width: 768px) {
   .wrapper {
@@ -175,18 +161,4 @@ body {
   .main {
     padding: 20px;
   }
-}
- 
-.logoCircle {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  background-color: #2563eb;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: bold;
-  flex-shrink: 0;
 }
