@@ -1,0 +1,173 @@
+/* Background with dark gradient */
+.profile-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0d1f1a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Glass card */
+.profile-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 30px;
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Title */
+.profile-card h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+/* Fields */
+.profile-item {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Labels */
+.profile-item label {
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #94a3b8;
+}
+
+/* Inputs */
+.profile-item input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.profile-item input:focus {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.profile-item input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Role display */
+.role-view {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+/* Role checkboxes */
+.roles-checkbox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.roles-checkbox label {
+  background: rgba(59, 130, 246, 0.2);
+  color: #e0f2fe;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.roles-checkbox input {
+  margin-right: 5px;
+}
+
+/* Edit / Save button */
+.primary-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #ffffff, #f2f2f8);
+  color: #0b0909;
+
+  transition: 0.3s;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+}
+
+/* Logout button */
+.logout-btn {
+  width: 100%;
+  padding: 11px;
+  margin-top: 10px;
+
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #d01b1bf5, #64060b);
+  color: #0c0c0c;
+
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(233, 32, 32, 0.4);
+}
+
+/* Error */
+.error {
+  color: #f87171;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .profile-card {
+    padding: 20px;
+  }
+}
+.error-box {
+  background: #ffe6e6;
+  color: #d8000c;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.success-box {
+  background: #e6ffed;
+  color: #2e7d32;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  text-align: center;
+}
