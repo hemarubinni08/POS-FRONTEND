@@ -1,0 +1,162 @@
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Background */
+.main-container {
+  min-height: 100vh; /* ✅ FIX */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, #f1f5f9, #dbeafe);
+}
+.input-style {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.input-style:focus {
+  outline: none;
+  border-color: black;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.role-chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+}
+.subtitle {
+  text-align: center;
+  margin-bottom: 15px;
+  color: gray;
+  font-size: 14px;
+}
+
+
+/* Card */
+.register-card {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  width: 380px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.register-card h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* Input */
+.input-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+}
+
+/* ✅ Floating Label FIX */
+.input-group label {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: gray;
+  transition: 0.3s;
+  pointer-events: none;
+  background: white;
+  padding: 0 5px;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+  top: -8px;
+  font-size: 12px;
+  color: #4e73df;
+}
+
+/* Roles */
+.role-section {
+  margin-bottom: 15px;
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.role-chip {
+  background: #f1f1f1;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.role-chip input {
+  margin-right: 5px;
+}
+
+/* Button */
+.register-btn {
+  width: 100%;
+  padding: 12px;
+  background: #4e73df;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.register-btn:hover {
+  background: #2e59d9;
+}
+
+/* Errors */
+.error {
+  color: red;
+  font-size: 12px;
+}
+
+/* Popup */
+.popup {
+  margin-bottom: 10px;
+  text-align: center;
+  color: green;
+  font-weight: 500;
+}
+
+/* Switch link */
+.switch-text {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.switch-text span {
+  color: #4e73df;
+  cursor: pointer;
+}
