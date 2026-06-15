@@ -22,11 +22,13 @@ function MultiSelect({
 
   useEffect(() => {
     if (!open) return;
+
     const handleOutsideClick = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [open]);
@@ -36,23 +38,28 @@ function MultiSelect({
 
   const handleToggle = (option) => {
     if (disabled) return;
+
     const updated = isSelected(option)
       ? selectedValues.filter(
           (item) => item[optionValue] !== option[optionValue]
         )
       : [...selectedValues, option];
+
     onChange(updated);
   };
 
   const handleRemove = (e, option) => {
     e.stopPropagation();
+
     if (disabled) return;
+
     onChange(
       selectedValues.filter((item) => item[optionValue] !== option[optionValue])
     );
   };
 
   let triggerBorderClass;
+
   if (hasError) {
     triggerBorderClass = "border-red-500";
   } else if (open) {
@@ -70,63 +77,58 @@ function MultiSelect({
         </label>
       )}
 
-     <div
-  role="button"
-  tabIndex={disabled ? -1 : 0}
-  aria-haspopup="true"
-  aria-expanded={open}
-  aria-controls={`${listboxId}-menu`}
-  aria-disabled={disabled}
-  onClick={() => {
-    if (!disabled) setOpen((prev) => !prev);
-  }}
-  onKeyDown={(e) => {
-    if (disabled) return;
-
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      setOpen((prev) => !prev);
-    }
-
-    if (e.key === "Escape") setOpen(false);
-  }}
-  className={`
-    min-h-[50px] border rounded-lg px-3 py-2
-    flex items-center flex-wrap gap-2 bg-white text-left w-full
-    transition-colors
-    ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-gray-400"}
-    ${triggerBorderClass}
-  `}
->
-  {selectedValues.length > 0 ? (
-    selectedValues.map((item) => (
-      <span
-        key={item[optionValue]}
-        className="flex items-center gap-1 bg-red-600 text-white px-2 py-1 rounded-md text-sm"
+      <div
+        className={`
+          min-h-[50px] border rounded-lg px-3 py-2
+          flex items-center flex-wrap gap-2 bg-white text-left w-full
+          transition-colors
+          ${disabled ? "opacity-50 cursor-not-allowed" : "hover:border-gray-400"}
+          ${triggerBorderClass}
+        `}
       >
-        {item[optionLabel]}
+        {selectedValues.length > 0 ? (
+          selectedValues.map((item) => (
+            <span
+              key={item[optionValue]}
+              className="flex items-center gap-1 bg-red-600 text-white px-2 py-1 rounded-md text-sm"
+            >
+              {item[optionLabel]}
+
+              <button
+                type="button"
+                disabled={disabled}
+                aria-label={`Remove ${item[optionLabel]}`}
+                onClick={(e) => handleRemove(e, item)}
+                className="hover:text-red-200 transition-colors disabled:cursor-not-allowed"
+              >
+                <X size={14} />
+              </button>
+            </span>
+          ))
+        ) : (
+          <span className="text-gray-400 text-sm">{placeholder}</span>
+        )}
 
         <button
           type="button"
-          aria-label={`Remove ${item[optionLabel]}`}
-          onClick={(e) => handleRemove(e, item)}
-          className="hover:text-red-200 transition-colors"
+          aria-haspopup="true"
+          aria-expanded={open}
+          aria-controls={`${listboxId}-menu`}
+          disabled={disabled}
+          onClick={() => setOpen((prev) => !prev)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setOpen(false);
+          }}
+          className="ml-auto flex items-center justify-center text-gray-500 disabled:cursor-not-allowed"
         >
-          <X size={14} />
+          <ChevronDown
+            size={18}
+            className={`flex-shrink-0 transition-transform duration-200 ${
+              open ? "rotate-180" : ""
+            }`}
+          />
         </button>
-      </span>
-    ))
-  ) : (
-    <span className="text-gray-400 text-sm">{placeholder}</span>
-  )}
-
-  <ChevronDown
-    size={18}
-    className={`ml-auto text-gray-500 flex-shrink-0 transition-transform duration-200 ${
-      open ? "rotate-180" : ""
-    }`}
-  />
-</div>
+      </div>
 
       {open && (
         <div
@@ -145,6 +147,7 @@ function MultiSelect({
           ) : (
             options.map((option) => {
               const selected = isSelected(option);
+
               return (
                 <div
                   key={option[optionValue]}
@@ -171,7 +174,11 @@ function MultiSelect({
                   <span
                     className={`
                       w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center
-                      ${selected ? "bg-red-600 border-red-600" : "border-gray-300"}
+                      ${
+                        selected
+                          ? "bg-red-600 border-red-600"
+                          : "border-gray-300"
+                      }
                     `}
                   >
                     {selected && (
@@ -190,6 +197,7 @@ function MultiSelect({
                       </svg>
                     )}
                   </span>
+
                   {option[optionLabel]}
                 </div>
               );

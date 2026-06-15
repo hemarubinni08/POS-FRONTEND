@@ -1,0 +1,551 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import POSLayout from "../components/PosLayout";
+import commonApi from "../services/commonApi";
+
+function CartPage() {
+  const router = useRouter();
+
+  const [customers, setCustomers] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [productSearch, setProductSearch] = useState("");
+  const [prices, setPrices] = useState([]);
+
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [calcValue, setCalcValue] = useState("");
+
+  const payload = {
+    page: 0,
+    sizePerPage: 1000,
+    sortDirection: "ASC",
+    sortField: "id",
+    search: "",
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const res = await commonApi.list("customer", payload);
+      setCustomers(res.data.dtoList || []);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchActiveProducts = async () => {
+    try {
+      const res = await commonApi.active("product");
+      setProducts(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchPrices = async () => {
+    try {
+      const res = await commonApi.list("price", payload);
+      setPrices(res.data.dtoList || []);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchCart = async (cartIdentifier) => {
+    if (!cartIdentifier) {
+      setCart(null);
+      return;
+    }
+
+    try {
+      const res = await commonApi.customPost("cart/getCart", {
+        identifier: cartIdentifier,
+      });
+
+      setCart(res.data);
+    } catch (err) {
+      console.log(err);
+      setCart(null);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+    fetchActiveProducts();
+    fetchPrices();
+  }, []);
+
+  const getSellingPrice = (productIdentifier) => {
+    const price = prices.find(
+      (item) =>
+        item.productIdentifier === productIdentifier &&
+        item.priceType === "SELLING_PRICE"
+    );
+
+    return price?.priceAmount || "-";
+  };
+
+  const handleCustomerChange = async (e) => {
+    const customerIdentifier = e.target.value;
+    setSelectedCustomer(customerIdentifier);
+
+    if (!customerIdentifier) {
+      setCart(null);
+      return;
+    }
+
+    localStorage.setItem("cartIdentifier", customerIdentifier);
+
+    try {
+      await commonApi.add("cart", {
+        identifier: customerIdentifier,
+        originalPrice: 0,
+        discount: 0,
+        totalPrice: 0,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+
+    fetchCart(customerIdentifier);
+  };
+
+  const handleAddProduct = async (product) => {
+    if (!selectedCustomer) {
+      alert("Please select customer first");
+      return;
+    }
+
+    try {
+      const res = await commonApi.add("cartentry", {
+        cartIdentifier: selectedCustomer,
+        productIdentifier: product.identifier,
+        quantity: 1,
+      });
+
+      if (res.data.success === false) {
+        alert(res.data.message);
+        return;
+      }
+
+      fetchCart(selectedCustomer);
+    } catch (err) {
+      console.log(err);
+      alert("Failed to add product");
+    }
+  };
+
+  const handleIncrease = async (entry) => {
+    try {
+      const res = await commonApi.add("cartentry", {
+        cartIdentifier: entry.cartIdentifier,
+        productIdentifier: entry.productIdentifier,
+        quantity: 1,
+      });
+
+      if (res.data.success === false) {
+        alert(res.data.message);
+        return;
+      }
+
+      fetchCart(selectedCustomer);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleDecrease = async (entry) => {
+    try {
+      await commonApi.customPost("cart/reduceEntry", {
+        cartIdentifier: entry.cartIdentifier,
+        productIdentifier: entry.productIdentifier,
+      });
+
+      fetchCart(selectedCustomer);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleDeleteEntry = async (entry) => {
+    try {
+      await commonApi.customPost("cart/deleteEntry", {
+        cartIdentifier: entry.cartIdentifier,
+        productIdentifier: entry.productIdentifier,
+      });
+
+      fetchCart(selectedCustomer);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleClearCart = async () => {
+    if (!selectedCustomer) return;
+
+    try {
+      await commonApi.customPost("cart/clearcart", {
+        identifier: selectedCustomer,
+      });
+
+      fetchCart(selectedCustomer);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleCalculatorClick = (value) => {
+    if (value === "C") {
+      setCalcValue("");
+      return;
+    }
+
+    if (value === "⌫") {
+      setCalcValue((prev) => prev.slice(0, -1));
+      return;
+    }
+
+    if (value === "=") {
+      try {
+        const safeExpression = calcValue.replaceAll("×", "*").replaceAll("÷", "/");
+        setCalcValue(String(new Function(`"use strict"; return (${safeExpression})`)()));
+      } catch {
+        setCalcValue("Error");
+      }
+      return;
+    }
+
+    if (calcValue === "Error") {
+      setCalcValue(value);
+      return;
+    }
+
+    setCalcValue((prev) => prev + value);
+  };
+
+  const filteredProducts = products.filter((product) => {
+    const searchText = [
+      product?.identifier,
+      product?.name,
+      product?.brand,
+      product?.model,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return searchText.includes(productSearch.toLowerCase());
+  });
+
+  const subTotal = cart?.originalPrice || 0;
+  const discount = cart?.discount || 0;
+  const totalAmount = cart?.totalPrice || 0;
+
+  const selectedCustomerName =
+    customers.find((customer) => customer.identifier === selectedCustomer)
+      ?.name || selectedCustomer || "No customer selected";
+
+  const itemCount = cart?.entryList?.length || 0;
+
+  return (
+    <POSLayout>
+      <div className="mb-4 bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="font-bold text-gray-900 mr-2">Quick Action</span>
+
+          <button
+            onClick={() => router.push("/product")}
+            className="border border-gray-300 bg-white hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-semibold text-gray-800"
+          >
+            🛒 Product List
+          </button>
+
+          <button
+            onClick={() => setShowCalculator(true)}
+            className="border border-gray-300 bg-white hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-semibold text-gray-800"
+          >
+            🧮 Calculator
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-190px)] overflow-hidden">
+        <div className="flex-1 lg:w-1/2 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+          <div className="p-4 border-b bg-white">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-red-500 font-semibold">
+                  Billing area
+                </p>
+                <h2 className="text-xl font-bold text-gray-900 mt-1">
+                  Current Sale
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Customer: {selectedCustomerName}
+                </p>
+              </div>
+
+              <button
+                onClick={handleClearCart}
+                disabled={!selectedCustomer}
+                className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm"
+              >
+                Clear Cart
+              </button>
+            </div>
+
+            <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+              <label
+                htmlFor="customer-select"
+                className="block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 mb-1"
+              >
+                Select customer
+              </label>
+
+              <select
+                id="customer-select"
+                value={selectedCustomer}
+                onChange={handleCustomerChange}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="">Select Customer</option>
+
+                {customers.map((customer) => (
+                  <option key={customer.identifier} value={customer.identifier}>
+                    {customer.name || customer.identifier}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-auto">
+            <table className="min-w-full border-collapse">
+              <thead className="bg-gray-100 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">
+                    Item
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">
+                    Price
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">
+                    Qty
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">
+                    Total
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {cart?.entryList?.length > 0 ? (
+                  cart.entryList.map((entry, index) => (
+                    <tr
+                      key={entry.identifier || index}
+                      className="border-t hover:bg-gray-50"
+                    >
+                      <td className="px-4 py-3 text-sm font-semibold text-gray-800">
+                        {entry.productIdentifier}
+                      </td>
+
+                      <td className="px-4 py-3 text-center text-sm text-gray-800">
+                        ₹{entry.unitPrice}
+                      </td>
+
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-3">
+                          <button
+                            onClick={() => handleDecrease(entry)}
+                            className="w-8 h-8 border border-gray-300 rounded-md bg-white text-gray-700 font-bold hover:bg-gray-100"
+                          >
+                            −
+                          </button>
+
+                          <span className="w-10 text-center text-base font-bold text-gray-900">
+                            {entry.quantity}
+                          </span>
+
+                          <button
+                            onClick={() => handleIncrease(entry)}
+                            className="w-8 h-8 border border-gray-300 rounded-md bg-white text-gray-700 font-bold hover:bg-gray-100"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-3 text-center text-sm font-bold text-gray-900">
+                        ₹{entry.totalPrice}
+                      </td>
+
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => handleDeleteEntry(entry)}
+                          className="border border-gray-300 bg-white text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-100"
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="text-center py-16">
+                      <div className="text-gray-400 text-lg font-semibold">
+                        No products added
+                      </div>
+                      <p className="text-gray-400 text-sm mt-2">
+                        Select a customer and add products from the right
+                      </p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="border-t bg-gray-50 p-4 space-y-2">
+            <div className="flex justify-between text-gray-700">
+              <span>Sub Total</span>
+              <span className="font-semibold">₹{subTotal}</span>
+            </div>
+
+            <div className="flex justify-between text-gray-700">
+              <span>Discount</span>
+              <span className="font-semibold">₹{discount}</span>
+            </div>
+
+            <div className="flex justify-between text-xl font-bold text-gray-900 border-t pt-2">
+              <span>Total</span>
+              <span>₹{totalAmount}</span>
+            </div>
+
+            <button
+              disabled={!cart?.entryList?.length}
+              className="w-full mt-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white py-3 rounded-lg font-bold"
+            >
+              Sale
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 lg:w-1/2 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+          <div className="p-4 border-b bg-white">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-red-500 font-semibold">
+                  Product area
+                </p>
+                <h2 className="text-xl font-bold text-gray-900 mt-1">
+                  Product List
+                </h2>
+              </div>
+
+              <div className="rounded-xl bg-red-50 px-3 py-2 text-right">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-red-500">
+                  Items
+                </p>
+                <p className="text-lg font-bold text-gray-900">{itemCount}</p>
+              </div>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Search product by name, code, brand..."
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+              className="mt-3 w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.identifier}
+                  className="rounded-xl border border-gray-200 bg-white overflow-hidden"
+                >
+                  <div className="h-24 bg-gray-100 flex items-center justify-center border-b">
+                    <div className="w-12 h-12 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs">
+                      IMG
+                    </div>
+                  </div>
+
+                  <div className="p-3">
+                    <h3 className="font-bold text-gray-900 text-sm line-clamp-2">
+                      {product.name || product.identifier}
+                    </h3>
+
+                    <p className="text-xs text-gray-500 mt-1">
+                      Price: ₹{getSellingPrice(product.identifier)}
+                    </p>
+
+                    <button
+                      onClick={() => handleAddProduct(product)}
+                      className="mt-2 w-full border border-gray-300 bg-white text-gray-800 text-center py-2 rounded-lg font-bold text-sm hover:bg-gray-100"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {filteredProducts.length === 0 && (
+                <div className="col-span-full text-center py-16 text-gray-400">
+                  No products found
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {showCalculator && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-[320px] p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-gray-900">Calculator</h2>
+
+              <button
+                onClick={() => setShowCalculator(false)}
+                className="w-8 h-8 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            <input
+              value={calcValue}
+              readOnly
+              className="w-full border border-gray-300 rounded-lg px-3 py-3 mb-3 text-right text-xl font-bold text-gray-900"
+            />
+
+            <div className="grid grid-cols-4 gap-2">
+              {["C", "⌫", "÷", "×", "7", "8", "9", "-", "4", "5", "6", "+", "1", "2", "3", "=", "0", "."].map(
+                (value) => (
+                  <button
+                    key={value}
+                    onClick={() => handleCalculatorClick(value)}
+                    className={`border border-gray-300 rounded-lg py-3 font-bold hover:bg-gray-100 ${
+                      value === "0" ? "col-span-2" : ""
+                    }`}
+                  >
+                    {value}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </POSLayout>
+  );
+}
+
+export default CartPage;

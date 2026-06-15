@@ -53,6 +53,7 @@ function Product() {
         columns={columns}
         editUrl="/product/edit"
         addUrl="/product/add"
+        showAddToCart={true}
       />
     </POSLayout>
   );

@@ -32,14 +32,24 @@ const commonApi = {
       },
     });
   },
-  
+
   get: async (routeName, fieldName, value) => {
-  return await axiosInstance.get(`/${routeName}/get`, {
-    params: {
-      [fieldName]: value,
-    },
-  });
-},
+    return await axiosInstance.get(`/${routeName}/get`, {
+      params: {
+        [fieldName]: value,
+      },
+    });
+  },
+
+  customPost: async (url, payload) => {
+    return await axiosInstance.post(`/${url}`, payload);
+  },
+
+  customGet: async (url, params = {}) => {
+    return await axiosInstance.get(`/${url}`, {
+      params,
+    });
+  },
 };
 
 export default commonApi;
