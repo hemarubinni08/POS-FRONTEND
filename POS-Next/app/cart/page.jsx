@@ -17,6 +17,17 @@ function CartPage() {
 
   const [showCalculator, setShowCalculator] = useState(false);
   const [calcValue, setCalcValue] = useState("");
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [receivedAmount, setReceivedAmount] = useState("");
+
+  const [newCustomer, setNewCustomer] = useState({
+    name: "",
+    phoneNumber: "",
+    email: "",
+  });
 
   const payload = {
     page: 0,
@@ -26,10 +37,23 @@ function CartPage() {
     search: "",
   };
 
+  const getUniqueByIdentifier = (list) => {
+    const map = new Map();
+
+    list.forEach((item) => {
+      if (item?.identifier && !map.has(item.identifier)) {
+        map.set(item.identifier, item);
+      }
+    });
+
+    return Array.from(map.values());
+  };
+
   const fetchCustomers = async () => {
     try {
       const res = await commonApi.list("customer", payload);
-      setCustomers(res.data.dtoList || []);
+      const customerList = res.data.dtoList || [];
+      setCustomers(getUniqueByIdentifier(customerList));
     } catch (err) {
       console.log(err);
     }
@@ -125,7 +149,7 @@ function CartPage() {
         quantity: 1,
       });
 
-      if (res.data.success === false) {
+      if (res.data?.success === false) {
         alert(res.data.message);
         return;
       }
@@ -145,7 +169,7 @@ function CartPage() {
         quantity: 1,
       });
 
-      if (res.data.success === false) {
+      if (res.data?.success === false) {
         alert(res.data.message);
         return;
       }
@@ -196,6 +220,74 @@ function CartPage() {
     }
   };
 
+  const handleOpenPaymentModal = () => {
+    if (!selectedCustomer) {
+      alert("Please select customer");
+      return;
+    }
+
+    if (!cart?.entryList?.length) {
+      alert("Cart is empty");
+      return;
+    }
+
+    setPaymentMethod("CASH");
+    setReceivedAmount("");
+    setShowPaymentModal(true);
+  };
+
+  const getChangeAmount = () => {
+    const received = Number(receivedAmount || 0);
+    const total = Number(totalAmount || 0);
+    return received - total;
+  };
+
+  const handleCheckout = async () => {
+    if (!selectedCustomer) {
+      alert("Please select customer");
+      return;
+    }
+
+    if (!cart?.entryList?.length) {
+      alert("Cart is empty");
+      return;
+    }
+
+    const total = Number(totalAmount || 0);
+    const received = paymentMethod === "CASH" ? Number(receivedAmount || 0) : total;
+    const change = paymentMethod === "CASH" ? received - total : 0;
+
+    if (paymentMethod === "CASH" && received < total) {
+      alert("Received amount should be greater than or equal to total amount");
+      return;
+    }
+
+    try {
+      const res = await commonApi.customPost("order/checkout", {
+        customerIdentifier: selectedCustomer,
+        paymentMethod,
+        receivedAmount: received,
+        changeAmount: change,
+      });
+
+      if (res.data?.success === false) {
+        alert(res.data.message || "Checkout failed");
+        return;
+      }
+
+      alert("Order placed successfully");
+
+      setShowPaymentModal(false);
+      setReceivedAmount("");
+      setPaymentMethod("CASH");
+
+      fetchCart(selectedCustomer);
+    } catch (err) {
+      console.log(err);
+      alert("Checkout failed");
+    }
+  };
+
   const handleCalculatorClick = (value) => {
     if (value === "C") {
       setCalcValue("");
@@ -209,8 +301,13 @@ function CartPage() {
 
     if (value === "=") {
       try {
-        const safeExpression = calcValue.replaceAll("×", "*").replaceAll("÷", "/");
-        setCalcValue(String(new Function(`"use strict"; return (${safeExpression})`)()));
+        const safeExpression = calcValue
+          .replaceAll("×", "*")
+          .replaceAll("÷", "/");
+
+        setCalcValue(
+          String(new Function(`"use strict"; return (${safeExpression})`)())
+        );
       } catch {
         setCalcValue("Error");
       }
@@ -223,6 +320,66 @@ function CartPage() {
     }
 
     setCalcValue((prev) => prev + value);
+  };
+
+  const handleCustomerInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setNewCustomer((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleAddCustomer = async () => {
+    if (!newCustomer.name || !newCustomer.phoneNumber || !newCustomer.email) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    try {
+      const customerPayload = {
+        identifier: newCustomer.email,
+        customerName: newCustomer.name,
+        phoneNumber: Number(newCustomer.phoneNumber),
+        partyType: "Customer",
+        balance: 0,
+        creditLimit: 0,
+      };
+
+      const res = await commonApi.add("customer", customerPayload);
+
+      if (res.data?.success === false) {
+        alert(res.data.message);
+        return;
+      }
+
+      setShowCustomerModal(false);
+      setNewCustomer({
+        name: "",
+        phoneNumber: "",
+        email: "",
+      });
+
+      await fetchCustomers();
+
+      setSelectedCustomer(customerPayload.identifier);
+      localStorage.setItem("cartIdentifier", customerPayload.identifier);
+
+      await commonApi.add("cart", {
+        identifier: customerPayload.identifier,
+        originalPrice: 0,
+        discount: 0,
+        totalPrice: 0,
+      });
+
+      fetchCart(customerPayload.identifier);
+
+      alert("Customer added successfully");
+    } catch (err) {
+      console.log(err);
+      alert("Failed to add customer");
+    }
   };
 
   const filteredProducts = products.filter((product) => {
@@ -242,12 +399,14 @@ function CartPage() {
   const subTotal = cart?.originalPrice || 0;
   const discount = cart?.discount || 0;
   const totalAmount = cart?.totalPrice || 0;
+  const itemCount = cart?.entryList?.length || 0;
+  const changeAmount = getChangeAmount();
 
   const selectedCustomerName =
     customers.find((customer) => customer.identifier === selectedCustomer)
-      ?.name || selectedCustomer || "No customer selected";
-
-  const itemCount = cart?.entryList?.length || 0;
+      ?.customerName ||
+    selectedCustomer ||
+    "No customer selected";
 
   return (
     <POSLayout>
@@ -260,6 +419,13 @@ function CartPage() {
             className="border border-gray-300 bg-white hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-semibold text-gray-800"
           >
             🛒 Product List
+          </button>
+
+          <button
+            onClick={() => setShowCustomerModal(true)}
+            className="border border-gray-300 bg-white hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-semibold text-gray-800"
+          >
+            ➕ Add Customer
           </button>
 
           <button
@@ -312,9 +478,12 @@ function CartPage() {
               >
                 <option value="">Select Customer</option>
 
-                {customers.map((customer) => (
-                  <option key={customer.identifier} value={customer.identifier}>
-                    {customer.name || customer.identifier}
+                {customers.map((customer, index) => (
+                  <option
+                    key={`${customer.identifier}-${index}`}
+                    value={customer.identifier}
+                  >
+                    {customer.customerName || customer.identifier}
                   </option>
                 ))}
               </select>
@@ -329,7 +498,13 @@ function CartPage() {
                     Item
                   </th>
                   <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">
-                    Price
+                    MRP
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">
+                    Discount
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">
+                    Unit Price
                   </th>
                   <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">
                     Qty
@@ -347,13 +522,20 @@ function CartPage() {
                 {cart?.entryList?.length > 0 ? (
                   cart.entryList.map((entry, index) => (
                     <tr
-                      key={entry.identifier || index}
+                      key={`${
+                        entry.identifier || entry.productIdentifier
+                      }-${index}`}
                       className="border-t hover:bg-gray-50"
                     >
                       <td className="px-4 py-3 text-sm font-semibold text-gray-800">
                         {entry.productIdentifier}
                       </td>
-
+                      <td className="px-4 py-3 text-center text-sm text-gray-800">
+                        ₹{entry.mrp}
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-gray-800">
+                        ₹{entry.unitDiscount}
+                      </td>
                       <td className="px-4 py-3 text-center text-sm text-gray-800">
                         ₹{entry.unitPrice}
                       </td>
@@ -396,7 +578,7 @@ function CartPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="text-center py-16">
+                    <td colSpan={7} className="text-center py-16">
                       <div className="text-gray-400 text-lg font-semibold">
                         No products added
                       </div>
@@ -427,6 +609,7 @@ function CartPage() {
             </div>
 
             <button
+              onClick={handleOpenPaymentModal}
               disabled={!cart?.entryList?.length}
               className="w-full mt-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white py-3 rounded-lg font-bold"
             >
@@ -466,9 +649,9 @@ function CartPage() {
 
           <div className="flex-1 overflow-y-auto p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {filteredProducts.map((product) => (
+              {filteredProducts.map((product, index) => (
                 <div
-                  key={product.identifier}
+                  key={`${product.identifier}-${index}`}
                   className="rounded-xl border border-gray-200 bg-white overflow-hidden"
                 >
                   <div className="h-24 bg-gray-100 flex items-center justify-center border-b">
@@ -506,6 +689,173 @@ function CartPage() {
         </div>
       </div>
 
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Payment</h2>
+
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="w-8 h-8 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-xl bg-gray-50 border border-gray-200 p-4">
+              <p className="text-sm text-gray-500">Total Amount</p>
+              <p className="text-3xl font-bold text-gray-900">
+                ₹{Number(totalAmount || 0).toFixed(2)}
+              </p>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setPaymentMethod("CASH")}
+                className={`rounded-xl border px-4 py-3 font-semibold ${
+                  paymentMethod === "CASH"
+                    ? "border-red-500 bg-red-50 text-red-600"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                Cash
+              </button>
+
+              <button
+                onClick={() => setPaymentMethod("UPI")}
+                className={`rounded-xl border px-4 py-3 font-semibold ${
+                  paymentMethod === "UPI"
+                    ? "border-red-500 bg-red-50 text-red-600"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                UPI
+              </button>
+            </div>
+
+            {paymentMethod === "UPI" && (
+              <div className="mt-5 flex flex-col items-center rounded-xl border border-dashed border-gray-300 p-5">
+                <div className="grid h-40 w-40 grid-cols-5 grid-rows-5 gap-1 bg-white p-3 border border-gray-300">
+                  {Array.from({ length: 25 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className={`${
+                        index % 2 === 0 || index % 7 === 0
+                          ? "bg-gray-900"
+                          : "bg-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <p className="mt-3 text-sm text-gray-500 text-center">
+                  Scan this dummy QR to complete UPI payment
+                </p>
+              </div>
+            )}
+
+            {paymentMethod === "CASH" && (
+              <div className="mt-5">
+                <label className="text-sm font-semibold text-gray-700">
+                  Received Amount
+                </label>
+
+                <input
+                  type="number"
+                  value={receivedAmount}
+                  onChange={(e) => setReceivedAmount(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="Enter received amount"
+                />
+
+                <div className="mt-4 rounded-xl bg-gray-50 border border-gray-200 p-4">
+                  <p className="text-sm text-gray-500">Change to Return</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    ₹{Math.max(changeAmount, 0).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleCheckout}
+              className="mt-6 w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold"
+            >
+              Confirm Payment
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showCustomerModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Add Customer</h2>
+
+              <button
+                onClick={() => setShowCustomerModal(false)}
+                className="w-8 h-8 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Customer Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={newCustomer.name}
+                  onChange={handleCustomerInputChange}
+                  placeholder="Enter customer name"
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  name="phoneNumber"
+                  value={newCustomer.phoneNumber}
+                  onChange={handleCustomerInputChange}
+                  placeholder="Enter phone number"
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={newCustomer.email}
+                  onChange={handleCustomerInputChange}
+                  placeholder="Enter email"
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                />
+              </div>
+
+              <button
+                onClick={handleAddCustomer}
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold"
+              >
+                Save Customer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showCalculator && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl w-[320px] p-4">
@@ -527,19 +877,36 @@ function CartPage() {
             />
 
             <div className="grid grid-cols-4 gap-2">
-              {["C", "⌫", "÷", "×", "7", "8", "9", "-", "4", "5", "6", "+", "1", "2", "3", "=", "0", "."].map(
-                (value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleCalculatorClick(value)}
-                    className={`border border-gray-300 rounded-lg py-3 font-bold hover:bg-gray-100 ${
-                      value === "0" ? "col-span-2" : ""
-                    }`}
-                  >
-                    {value}
-                  </button>
-                )
-              )}
+              {[
+                "C",
+                "⌫",
+                "÷",
+                "×",
+                "7",
+                "8",
+                "9",
+                "-",
+                "4",
+                "5",
+                "6",
+                "+",
+                "1",
+                "2",
+                "3",
+                "=",
+                "0",
+                ".",
+              ].map((value) => (
+                <button
+                  key={value}
+                  onClick={() => handleCalculatorClick(value)}
+                  className={`border border-gray-300 rounded-lg py-3 font-bold hover:bg-gray-100 ${
+                    value === "0" ? "col-span-2" : ""
+                  }`}
+                >
+                  {value}
+                </button>
+              ))}
             </div>
           </div>
         </div>

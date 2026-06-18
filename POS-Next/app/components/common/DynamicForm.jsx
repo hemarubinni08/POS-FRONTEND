@@ -25,6 +25,10 @@ function DynamicForm({
 
   const isEdit = !!initialValues?.identifier;
 
+  const auditKeys = ["createdBy", "createdOn", "modifiedBy", "modifiedOn"];
+
+  const formFields = fields.filter((field) => !auditKeys.includes(field.key));
+
   let buttonLabel = "Save";
   if (loading) {
     buttonLabel = "Saving...";
@@ -47,7 +51,9 @@ function DynamicForm({
   const validate = () => {
     const newErrors = {};
 
-    fields.forEach((field) => {
+    formFields.forEach((field) => {
+      if (field.disabled) return;
+
       const value = formData[field.key];
 
       if (field.required !== false) {
@@ -85,10 +91,24 @@ function DynamicForm({
     return value ?? "";
   };
 
+  const formatDateTime = (value) => {
+    if (!value) return "-";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleString();
+  };
+
   const buildPayload = () => {
     const payload = {};
 
-    fields.forEach((field) => {
+    formFields.forEach((field) => {
+      if (field.disabled) return;
+
       const value = formData[field.key];
 
       if (field.type === "multiselect") {
@@ -139,6 +159,54 @@ function DynamicForm({
       setLoading(false);
     }
   };
+
+  const renderAuditDetails = () => {
+  if (!isEdit) return null;
+
+  return (
+    <div className="px-6 pt-5">
+      <div className="grid grid-cols-2 gap-6 border rounded-xl bg-gray-50 p-3">
+        {/* Created Details */}
+        <div>
+          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
+            Created Details
+          </h4>
+
+          <div className="space-y-1 text-[12px] text-gray-700">
+            <p>
+              <span className="font-semibold">Created By :</span>{" "}
+              {formData.createdBy || "-"}
+            </p>
+
+            <p>
+              <span className="font-semibold">Created On :</span>{" "}
+              {formatDateTime(formData.createdOn)}
+            </p>
+          </div>
+        </div>
+
+        {/* Modified Details */}
+        <div>
+          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2 text-right">
+            Modified Details
+          </h4>
+
+          <div className="space-y-1 text-[12px] text-gray-700 text-right">
+            <p>
+              <span className="font-semibold">Modified By :</span>{" "}
+              {formData.modifiedBy || "-"}
+            </p>
+
+            <p>
+              <span className="font-semibold">Modified On :</span>{" "}
+              {formatDateTime(formData.modifiedOn)}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   const renderField = (field) => {
     const isReadOnly = field.disabled || (isEdit && field.readOnlyOnEdit);
@@ -209,8 +277,10 @@ function DynamicForm({
   if (isModal) {
     return (
       <form onSubmit={handleSubmit} className="flex flex-col">
+        {renderAuditDetails()}
+
         <div className="px-6 py-6 flex flex-col gap-5">
-          {fields.map((field) => (
+          {formFields.map((field) => (
             <div key={field.key}>{renderField(field)}</div>
           ))}
         </div>
@@ -245,8 +315,10 @@ function DynamicForm({
       )}
 
       <form onSubmit={handleSubmit}>
+        {renderAuditDetails()}
+
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {fields.map((field) => (
+          {formFields.map((field) => (
             <div
               key={field.key}
               className={field.fullWidth ? "md:col-span-2" : ""}
