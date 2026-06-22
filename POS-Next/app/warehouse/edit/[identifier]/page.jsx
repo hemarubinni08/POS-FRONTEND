@@ -7,19 +7,26 @@ import POSLayout from "../../../components/PosLayout";
 import SectionForm from "../../../components/common/SectionForm";
 import commonApi from "../../../services/commonApi";
 
-function PriceEdit() {
+function WarehouseEdit() {
   const params = useParams();
   const identifier = params.identifier;
 
   const [initialValues, setInitialValues] = useState(null);
 
   useEffect(() => {
-    fetchPrice();
-  }, []);
+    if (identifier) {
+      fetchWarehouse();
+    }
+  }, [identifier]);
 
-  const fetchPrice = async () => {
+  const fetchWarehouse = async () => {
     try {
-      const res = await commonApi.get("price", "identifier", identifier);
+      const res = await commonApi.get(
+        "warehouse",
+        "identifier",
+        identifier
+      );
+
       setInitialValues(res.data);
     } catch (err) {
       console.log(err);
@@ -27,39 +34,57 @@ function PriceEdit() {
   };
 
   if (!initialValues) {
-    return (
-      <POSLayout>
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          Loading...
-        </div>
-      </POSLayout>
-    );
+    return <POSLayout>Loading...</POSLayout>;
   }
 
   const sections = [
     {
-      title: "Price Information",
+      title: "Basic Information",
       columns: 3,
       fields: [
         {
-          key: "productIdentifier",
-          label: "Product Identifier",
+          key: "name",
+          label: "Warehouse Name",
           type: "text",
-          disabled: true,
           required: true,
         },
         {
-          key: "priceType",
-          label: "Price Type",
+          key: "identifier",
+          label: "Warehouse Identifier",
           type: "text",
           required: true,
           disabled: true,
         },
         {
-          key: "priceAmount",
-          label: "Price Amount",
+          key: "phoneNo",
+          label: "Phone Number",
           type: "text",
-          placeholder: "Enter Price Amount",
+          required: true,
+          isPhone: true,
+        },
+      ],
+    },
+    {
+      title: "Address Information",
+      columns: 2,
+      fields: [
+        {
+          key: "address",
+          label: "Address",
+          type: "text",
+          required: true,
+          fullWidth: true,
+        },
+        {
+          key: "region",
+          label: "Region",
+          type: "text",
+          required: true,
+        },
+        {
+          key: "country",
+          label: "Country",
+          type: "text",
           required: true,
         },
         {
@@ -90,29 +115,17 @@ function PriceEdit() {
     },
   ];
 
-  const buildPricePayload = (formData) => {
-    return {
-      id: initialValues.id,
-      identifier: initialValues.identifier,
-      productIdentifier: initialValues.productIdentifier,
-      priceType: formData.priceType,
-      priceAmount: formData.priceAmount,
-    };
-  };
-
   return (
     <POSLayout>
       <SectionForm
-        title="Edit Price"
-        submitUrl="/price/update"
-        backUrl="/price"
+        title="Edit Warehouse"
+        submitUrl="/warehouse/update"
+        backUrl="/warehouse"
         sections={sections}
         initialValues={initialValues}
-        buildCustomPayload={buildPricePayload}
-        uniqueFields={["productIdentifier", "priceType"]}
       />
     </POSLayout>
   );
 }
 
-export default PriceEdit;
+export default WarehouseEdit;

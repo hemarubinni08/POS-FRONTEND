@@ -129,36 +129,45 @@ function DynamicForm({
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validate()) return;
+  if (!validate()) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const payload = buildPayload();
+    const payload = buildPayload();
 
-      const response = isEdit
-        ? await commonApi.update(routeName, payload)
-        : await commonApi.add(routeName, payload);
+    const response = isEdit
+      ? await commonApi.update(routeName, payload)
+      : await commonApi.add(routeName, payload);
 
-      alert(isEdit ? "Updated Successfully" : "Saved Successfully");
+    const result = response?.data || response;
 
-      if (onSuccess) {
-        onSuccess(response.data);
-      }
-    } catch (err) {
-      console.log(err);
-
-      if (err.response?.status === 409) {
-        alert("Duplicate entry already exists");
-      } else {
-        alert("Something went wrong");
-      }
-    } finally {
-      setLoading(false);
+    if (result?.success === false) {
+      alert(result.message || "Operation failed");
+      return;
     }
-  };
+
+    alert(result?.message || (isEdit ? "Updated Successfully" : "Saved Successfully"));
+
+    if (onSuccess) {
+      onSuccess(result);
+    }
+  } catch (err) {
+    console.log(err);
+
+    if (err.response?.data?.message) {
+      alert(err.response.data.message);
+    } else if (err.response?.status === 409) {
+      alert("Duplicate entry already exists");
+    } else {
+      alert("Something went wrong");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   const renderAuditDetails = () => {
   if (!isEdit) return null;
@@ -166,7 +175,6 @@ function DynamicForm({
   return (
     <div className="px-6 pt-5">
       <div className="grid grid-cols-2 gap-6 border rounded-xl bg-gray-50 p-3">
-        {/* Created Details */}
         <div>
           <h4 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
             Created Details

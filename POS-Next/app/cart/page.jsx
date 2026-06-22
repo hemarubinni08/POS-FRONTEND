@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useRef } from "react";
 import { useRouter } from "next/navigation";
 import POSLayout from "../components/PosLayout";
 import commonApi from "../services/commonApi";
@@ -12,6 +12,8 @@ function CartPage() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [productSearch, setProductSearch] = useState("");
   const [prices, setPrices] = useState([]);
 
@@ -22,6 +24,9 @@ function CartPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [receivedAmount, setReceivedAmount] = useState("");
+  const [showOrderSuccessModal, setShowOrderSuccessModal] = useState(false);
+  const [completedOrder, setCompletedOrder] = useState(null);
+  const customerDropdownRef = useRef(null);
 
   const [newCustomer, setNewCustomer] = useState({
     name: "",
@@ -36,6 +41,13 @@ function CartPage() {
     sortField: "id",
     search: "",
   };
+  const getProductName = (productIdentifier) => {
+  const product = products.find(
+    (p) => p.identifier === productIdentifier
+  );
+
+  return product ? product.name : productIdentifier;
+};
 
   const getUniqueByIdentifier = (list) => {
     const map = new Map();
@@ -100,6 +112,22 @@ function CartPage() {
     fetchActiveProducts();
     fetchPrices();
   }, []);
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (
+      customerDropdownRef.current &&
+      !customerDropdownRef.current.contains(event.target)
+    ) {
+      setShowCustomerDropdown(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
 
   const getSellingPrice = (productIdentifier) => {
     const price = prices.find(
@@ -111,30 +139,31 @@ function CartPage() {
     return price?.priceAmount || "-";
   };
 
-  const handleCustomerChange = async (e) => {
-    const customerIdentifier = e.target.value;
-    setSelectedCustomer(customerIdentifier);
+  const handleCustomerChange = (customerIdentifier) => {
+  setSelectedCustomer(customerIdentifier);
 
-    if (!customerIdentifier) {
-      setCart(null);
-      return;
-    }
+  if (!customerIdentifier) {
+    setCart(null);
+    return;
+  }
 
-    localStorage.setItem("cartIdentifier", customerIdentifier);
+  localStorage.setItem("cartIdentifier", customerIdentifier);
 
-    try {
-      await commonApi.add("cart", {
-        identifier: customerIdentifier,
-        originalPrice: 0,
-        discount: 0,
-        totalPrice: 0,
-      });
-    } catch (err) {
+  commonApi
+    .add("cart", {
+      identifier: customerIdentifier,
+      originalPrice: 0,
+      discount: 0,
+      totalPrice: 0,
+    })
+    .then(() => {
+      fetchCart(customerIdentifier);
+    })
+    .catch((err) => {
       console.log(err);
-    }
-
-    fetchCart(customerIdentifier);
-  };
+      fetchCart(customerIdentifier);
+    });
+};
 
   const handleAddProduct = async (product) => {
     if (!selectedCustomer) {
@@ -243,6 +272,8 @@ function CartPage() {
   };
 
   const handleCheckout = async () => {
+    console.log("CONFIRM PAYMENT CLICKED");
+
     if (!selectedCustomer) {
       alert("Please select customer");
       return;
@@ -254,7 +285,8 @@ function CartPage() {
     }
 
     const total = Number(totalAmount || 0);
-    const received = paymentMethod === "CASH" ? Number(receivedAmount || 0) : total;
+    const received =
+      paymentMethod === "CASH" ? Number(receivedAmount || 0) : total;
     const change = paymentMethod === "CASH" ? received - total : 0;
 
     if (paymentMethod === "CASH" && received < total) {
@@ -263,27 +295,49 @@ function CartPage() {
     }
 
     try {
-      const res = await commonApi.customPost("order/checkout", {
+      const checkoutResponse = await commonApi.customPost("order/checkout", {
         customerIdentifier: selectedCustomer,
         paymentMethod,
         receivedAmount: received,
         changeAmount: change,
       });
 
-      if (res.data?.success === false) {
-        alert(res.data.message || "Checkout failed");
+      console.log("CHECKOUT RESPONSE:", checkoutResponse.data);
+
+      if (checkoutResponse.data?.success === false) {
+        alert(checkoutResponse.data.message || "Checkout failed");
         return;
       }
 
-      alert("Order placed successfully");
+      const orderIdentifier =
+        checkoutResponse.data?.identifier ||
+        checkoutResponse.data?.orderIdentifier;
 
+      if (!orderIdentifier) {
+        alert("Order placed, but order identifier not found");
+        return;
+      }
+
+      const orderResponse = await commonApi.get(
+        "order",
+        "identifier",
+        orderIdentifier
+      );
+
+      console.log("ORDER GET RESPONSE:", orderResponse.data);
+
+      setCompletedOrder(orderResponse.data);
       setShowPaymentModal(false);
+      setShowOrderSuccessModal(true);
+
       setReceivedAmount("");
       setPaymentMethod("CASH");
 
       fetchCart(selectedCustomer);
     } catch (err) {
-      console.log(err);
+      console.log("CHECKOUT ERROR:", err);
+      console.log("ERROR RESPONSE:", err.response);
+      console.log("ERROR DATA:", err.response?.data);
       alert("Checkout failed");
     }
   };
@@ -407,6 +461,18 @@ function CartPage() {
       ?.customerName ||
     selectedCustomer ||
     "No customer selected";
+  const formatCurrency = (value) => {
+    return `₹${Number(value || 0).toFixed(2)}`;
+  };
+  const filteredCustomers = customers.filter((customer) => {
+  const search = customerSearch.toLowerCase();
+
+  return (
+    customer.customerName?.toLowerCase().includes(search) ||
+    customer.identifier?.toLowerCase().includes(search) ||
+    String(customer.phoneNumber || "").includes(search)
+  );
+});
 
   return (
     <POSLayout>
@@ -470,23 +536,58 @@ function CartPage() {
                 Select customer
               </label>
 
-              <select
-                id="customer-select"
-                value={selectedCustomer}
-                onChange={handleCustomerChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                <option value="">Select Customer</option>
+             <div
+  className="relative"
+  ref={customerDropdownRef}
+>
+  <input
+    type="text"
+    placeholder="Search customer by name, email or phone..."
+    value={customerSearch}
+    onChange={(e) => {
+      setCustomerSearch(e.target.value);
+      setShowCustomerDropdown(true);
+    }}
+    onFocus={() => setShowCustomerDropdown(true)}
+    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+  />
 
-                {customers.map((customer, index) => (
-                  <option
-                    key={`${customer.identifier}-${index}`}
-                    value={customer.identifier}
-                  >
-                    {customer.customerName || customer.identifier}
-                  </option>
-                ))}
-              </select>
+  {showCustomerDropdown && (
+  <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto z-50">
+    {filteredCustomers.length > 0 ? (
+      filteredCustomers.map((customer) => (
+        <div
+          key={customer.identifier}
+          onClick={() => {
+            handleCustomerChange(customer.identifier);
+            setCustomerSearch(
+              customer.customerName || customer.identifier
+            );
+            setShowCustomerDropdown(false);
+          }}
+          className="px-4 py-3 hover:bg-red-50 cursor-pointer border-b last:border-b-0 transition-colors"
+        >
+          <div className="font-semibold text-gray-900">
+            {customer.customerName}
+          </div>
+
+          <div className="text-xs text-gray-500">
+            {customer.identifier}
+          </div>
+
+          <div className="text-xs text-gray-400">
+            {customer.phoneNumber}
+          </div>
+        </div>
+      ))
+    ) : (
+      <div className="px-4 py-4 text-center text-gray-500">
+        No customer found
+      </div>
+    )}
+  </div>
+)}
+</div>
             </div>
           </div>
 
@@ -522,14 +623,13 @@ function CartPage() {
                 {cart?.entryList?.length > 0 ? (
                   cart.entryList.map((entry, index) => (
                     <tr
-                      key={`${
-                        entry.identifier || entry.productIdentifier
-                      }-${index}`}
+                      key={`${entry.identifier || entry.productIdentifier
+                        }-${index}`}
                       className="border-t hover:bg-gray-50"
                     >
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-800">
-                        {entry.productIdentifier}
-                      </td>
+                     <td className="px-4 py-3 text-sm font-semibold text-gray-800">
+  {getProductName(entry.productIdentifier)}
+</td>
                       <td className="px-4 py-3 text-center text-sm text-gray-800">
                         ₹{entry.mrp}
                       </td>
@@ -713,22 +813,20 @@ function CartPage() {
             <div className="mt-5 grid grid-cols-2 gap-3">
               <button
                 onClick={() => setPaymentMethod("CASH")}
-                className={`rounded-xl border px-4 py-3 font-semibold ${
-                  paymentMethod === "CASH"
-                    ? "border-red-500 bg-red-50 text-red-600"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`rounded-xl border px-4 py-3 font-semibold ${paymentMethod === "CASH"
+                  ? "border-red-500 bg-red-50 text-red-600"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 Cash
               </button>
 
               <button
                 onClick={() => setPaymentMethod("UPI")}
-                className={`rounded-xl border px-4 py-3 font-semibold ${
-                  paymentMethod === "UPI"
-                    ? "border-red-500 bg-red-50 text-red-600"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`rounded-xl border px-4 py-3 font-semibold ${paymentMethod === "UPI"
+                  ? "border-red-500 bg-red-50 text-red-600"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 UPI
               </button>
@@ -740,11 +838,10 @@ function CartPage() {
                   {Array.from({ length: 25 }).map((_, index) => (
                     <div
                       key={index}
-                      className={`${
-                        index % 2 === 0 || index % 7 === 0
-                          ? "bg-gray-900"
-                          : "bg-gray-200"
-                      }`}
+                      className={`${index % 2 === 0 || index % 7 === 0
+                        ? "bg-gray-900"
+                        : "bg-gray-200"
+                        }`}
                     />
                   ))}
                 </div>
@@ -855,64 +952,198 @@ function CartPage() {
           </div>
         </div>
       )}
+     {showOrderSuccessModal && completedOrder && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] px-4">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
 
-      {showCalculator && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-[320px] p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-bold text-gray-900">Calculator</h2>
-
-              <button
-                onClick={() => setShowCalculator(false)}
-                className="w-8 h-8 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 font-bold"
-              >
-                ×
-              </button>
-            </div>
-
-            <input
-              value={calcValue}
-              readOnly
-              className="w-full border border-gray-300 rounded-lg px-3 py-3 mb-3 text-right text-xl font-bold text-gray-900"
-            />
-
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                "C",
-                "⌫",
-                "÷",
-                "×",
-                "7",
-                "8",
-                "9",
-                "-",
-                "4",
-                "5",
-                "6",
-                "+",
-                "1",
-                "2",
-                "3",
-                "=",
-                "0",
-                ".",
-              ].map((value) => (
-                <button
-                  key={value}
-                  onClick={() => handleCalculatorClick(value)}
-                  className={`border border-gray-300 rounded-lg py-3 font-bold hover:bg-gray-100 ${
-                    value === "0" ? "col-span-2" : ""
-                  }`}
-                >
-                  {value}
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className="flex justify-between items-start border-b pb-4">
+        <div>
+          <p className="text-xs font-bold tracking-[0.3em] text-red-600">
+            INVOICE
+          </p>
+          <h2 className="text-2xl font-extrabold text-gray-950 mt-2">
+            {completedOrder.identifier || completedOrder.orderIdentifier || "ORDER"}
+          </h2>
+          <p className="text-sm text-green-600 font-bold mt-1">
+            ✓ Order placed successfully
+          </p>
         </div>
-      )}
+
+        <button
+          onClick={() => {
+            setShowOrderSuccessModal(false);
+            setCompletedOrder(null);
+          }}
+          className="w-9 h-9 border border-gray-300 rounded-lg text-gray-900 font-bold hover:bg-gray-100"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mt-5">
+        <div className="rounded-xl border border-gray-300 bg-white p-4">
+          <p className="text-xs font-bold text-gray-600 uppercase">Customer</p>
+          <p className="mt-2 font-extrabold text-gray-950 break-all">
+            {completedOrder.customerIdentifier || selectedCustomer}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-gray-300 bg-white p-4">
+          <p className="text-xs font-bold text-gray-600 uppercase">Payment</p>
+          <p className="mt-2 font-extrabold text-gray-950">
+            {completedOrder.paymentMethod}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 border border-gray-300 rounded-xl overflow-hidden">
+        <table className="min-w-full bg-white">
+          <thead className="bg-gray-200">
+            <tr>
+              <th className="px-3 py-3 text-left text-xs font-extrabold text-gray-900">Product</th>
+              <th className="px-3 py-3 text-center text-xs font-extrabold text-gray-900">MRP</th>
+              <th className="px-3 py-3 text-center text-xs font-extrabold text-gray-900">Discount</th>
+              <th className="px-3 py-3 text-center text-xs font-extrabold text-gray-900">Unit Price</th>
+              <th className="px-3 py-3 text-center text-xs font-extrabold text-gray-900">Qty</th>
+              <th className="px-3 py-3 text-right text-xs font-extrabold text-gray-900">Total</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {(completedOrder.entryList || []).map((entry, index) => (
+              <tr key={index} className="border-t border-gray-300 bg-white">
+                <td className="px-3 py-3 font-extrabold text-gray-950">
+                  {getProductName(entry.productIdentifier)}
+                </td>
+                <td className="px-3 py-3 text-center font-bold text-gray-900">
+                  {formatCurrency(entry.mrp)}
+                </td>
+                <td className="px-3 py-3 text-center font-bold text-gray-900">
+                  {formatCurrency(entry.unitDiscount)}
+                </td>
+                <td className="px-3 py-3 text-center font-bold text-gray-900">
+                  {formatCurrency(entry.unitPrice)}
+                </td>
+                <td className="px-3 py-3 text-center font-extrabold text-gray-950">
+                  {entry.quantity}
+                </td>
+                <td className="px-3 py-3 text-right font-extrabold text-gray-950">
+                  {formatCurrency(entry.totalPrice)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-5 bg-white border border-gray-300 rounded-xl p-5 space-y-3">
+        <div className="flex justify-between font-bold text-gray-900">
+          <span>Original Price</span>
+          <span>{formatCurrency(completedOrder.originalPrice)}</span>
+        </div>
+
+        <div className="flex justify-between font-bold text-gray-900">
+          <span>Discount</span>
+          <span>{formatCurrency(completedOrder.discount)}</span>
+        </div>
+
+        <div className="border-t border-gray-300 pt-3 flex justify-between text-2xl font-extrabold text-red-600">
+          <span>Total</span>
+          <span>{formatCurrency(completedOrder.totalPrice)}</span>
+        </div>
+        <div className="flex justify-between font-bold text-gray-900">
+          <span>Received</span>
+          <span>{formatCurrency(completedOrder.receivedAmount)}</span>
+        </div>
+        <div className="flex justify-between font-bold text-gray-900">
+          <span>Change</span>
+          <span>{formatCurrency(completedOrder.changeAmount)}</span>
+        </div>
+      </div>
+      <div className="mt-6 flex justify-end gap-3">
+        <button
+          onClick={() => {
+            setShowOrderSuccessModal(false);
+            setCompletedOrder(null);
+          }}
+          className="px-6 py-2.5 border border-gray-300 rounded-lg font-bold text-gray-900 hover:bg-gray-100"
+        >
+          Close
+        </button>
+        <button
+          onClick={() => window.print()}
+          className="px-7 py-2.5 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700"
+        >
+          Print
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+     {showCalculator && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-2xl shadow-2xl w-[340px] p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-black">
+          Calculator
+        </h2>
+
+        <button
+          onClick={() => setShowCalculator(false)}
+          className="w-9 h-9 border border-gray-300 rounded-lg hover:bg-gray-100 text-black text-xl font-bold"
+        >
+          ×
+        </button>
+      </div>
+
+      <input
+        value={calcValue}
+        readOnly
+        placeholder="0"
+        className="w-full border border-gray-300 rounded-lg px-4 py-4 mb-4 text-right text-2xl font-bold text-black bg-white"
+      />
+
+      <div className="grid grid-cols-4 gap-3">
+        {[
+          "C",
+          "⌫",
+          "÷",
+          "×",
+          "7",
+          "8",
+          "9",
+          "-",
+          "4",
+          "5",
+          "6",
+          "+",
+          "1",
+          "2",
+          "3",
+          "=",
+          "0",
+          ".",
+        ].map((value) => (
+          <button
+            key={value}
+            onClick={() => handleCalculatorClick(value)}
+            className={`border border-gray-300 rounded-lg py-4 text-lg font-bold text-black hover:bg-gray-100 active:scale-95 transition ${
+              value === "0" ? "col-span-2" : ""
+            } ${
+              value === "="
+                ? "bg-red-600 text-white border-red-600 hover:bg-red-700"
+                : ""
+            }`}
+          >
+            {value}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
     </POSLayout>
   );
 }
-
 export default CartPage;

@@ -5,26 +5,33 @@ import React, { useEffect, useState } from "react";
 import DynamicList from "../components/common/DynamicList";
 import POSLayout from "../components/PosLayout";
 import commonApi from "../services/commonApi";
-function CategoryList() {
-  const [categories, setCategories] = useState([]);
+
+function RackList() {
+  const [shelfs, setShelfs] = useState([]);
 
   useEffect(() => {
-    commonApi
-      .active("category")
-      .then((res) => setCategories(res.data || []))
-      .catch((err) => console.log(err));
+    fetchShelfs();
   }, []);
+
+ const fetchShelfs = async () => {
+  try {
+    const res = await commonApi.active("shelf");
+    setShelfs(res.data || []);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
   const columns = [
     {
       key: "identifier",
-      label: "Category",
+      label: "Rack",
       type: "text",
     },
     {
-      key: "superCategory",
-      label: "Super Category",
-      type: "text",
+      key: "shelf",
+      label: "Shelf",
+      type: "list",
     },
     {
       key: "status",
@@ -36,20 +43,18 @@ function CategoryList() {
   const formFields = [
     {
       key: "identifier",
-      label: "Category Name",
+      label: "Rack Name",
       type: "text",
-      placeholder: "Enter Category",
+      placeholder: "Enter Rack Name",
       required: true,
-      readOnlyOnEdit: true,
     },
     {
-      key: "superCategory",
-      label: "Super Category",
-      type: "select",
-      options: categories,
+      key: "shelf",
+      label: "Shelfs",
+      type: "multiselect",
+      options: shelfs,
       optionLabel: "identifier",
       optionValue: "identifier",
-      required: false,
     },
     {
       key: "status",
@@ -67,46 +72,45 @@ function CategoryList() {
       ],
       optionLabel: "label",
       optionValue: "value",
-      required: true,
     },
-     {
-  key: "createdBy",
-  label: "Created By",
-  type: "text",
-  required: false,
-},
-{
-  key: "createdOn",
-  label: "Created On",
-  type: "text",
-  required: false,
-},
-{
-  key: "modifiedBy",
-  label: "Modified By",
-  type: "text",
-  required: false,
-},
-{
-  key: "modifiedOn",
-  label: "Modified On",
-  type: "text",
-  required: false,
-}
+    {
+    key: "createdBy",
+    label: "Created By",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "createdOn",
+    label: "Created On",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "modifiedBy",
+    label: "Modified By",
+    type: "text",
+    required: false,
+  },
+  {
+    key: "modifiedOn",
+    label: "Modified On",
+    type: "text",
+    required: false,
+  },
   ];
 
   return (
     <POSLayout>
       <DynamicList
-        title="Category List"
-        routeName="category"
+        title="Rack List"
+        routeName="rack"
         columns={columns}
         formFields={formFields}
-        formTitle="Category"
+        formTitle="Rack"
         uniqueFields={["identifier"]}
       />
     </POSLayout>
   );
 }
 
-export default CategoryList;
+export default RackList;

@@ -6,9 +6,13 @@ import commonApi from "../services/commonApi";
 
 function OrderPage() {
   const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showInvoice, setShowInvoice] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sizePerPage, setSizePerPage] = useState(20);
 
   const payload = {
     page: 0,
@@ -27,8 +31,18 @@ function OrderPage() {
     }
   };
 
+  const fetchActiveProducts = async () => {
+    try {
+      const res = await commonApi.active("product");
+      setProducts(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
+    fetchActiveProducts();
   }, []);
 
   const formatAmount = (value) =>
@@ -47,6 +61,11 @@ function OrderPage() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const getProductName = (productIdentifier) => {
+    const product = products.find((p) => p.identifier === productIdentifier);
+    return product?.name || productIdentifier;
   };
 
   const handleViewOrder = async (order) => {
@@ -74,6 +93,15 @@ function OrderPage() {
     return text.includes(search.toLowerCase());
   });
 
+  const totalRecords = filteredOrders.length;
+  const totalPages = Math.ceil(totalRecords / sizePerPage);
+  const startIndex = (currentPage - 1) * sizePerPage;
+
+  const paginatedOrders = filteredOrders.slice(
+    startIndex,
+    startIndex + sizePerPage
+  );
+
   return (
     <POSLayout>
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -89,9 +117,32 @@ function OrderPage() {
             type="text"
             placeholder="Search order, customer, payment..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full sm:w-80 border border-gray-300 rounded-xl px-4 py-3 text-gray-800 outline-none focus:ring-2 focus:ring-red-500"
           />
+        </div>
+
+        <div className="px-5 py-4 flex items-center gap-2 text-sm text-gray-700">
+          <span>Show</span>
+
+          <select
+            value={sizePerPage}
+            onChange={(e) => {
+              setSizePerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border border-gray-300 rounded-lg px-3 py-2"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+
+          <span>entries</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -126,11 +177,14 @@ function OrderPage() {
             </thead>
 
             <tbody>
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order, index) => (
-                  <tr key={order.identifier} className="border-t hover:bg-gray-50">
+              {paginatedOrders.length > 0 ? (
+                paginatedOrders.map((order, index) => (
+                  <tr
+                    key={order.identifier}
+                    className="border-t hover:bg-gray-50"
+                  >
                     <td className="px-4 py-4 text-sm text-gray-700">
-                      {index + 1}
+                      {startIndex + index + 1}
                     </td>
 
                     <td className="px-4 py-4 text-sm font-semibold text-gray-900">
@@ -178,6 +232,31 @@ function OrderPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        <div className="p-5 border-t flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm text-gray-600">
+            Showing Page {totalPages === 0 ? 0 : currentPage} of {totalPages}
+            {" "} Total Records: {totalRecords}
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 disabled:opacity-50 hover:bg-gray-100"
+            >
+              Previous
+            </button>
+
+            <button
+              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 disabled:opacity-50 hover:bg-gray-100"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 
@@ -254,7 +333,7 @@ function OrderPage() {
                   {selectedOrder.entryList?.map((entry) => (
                     <tr key={entry.identifier} className="border-t">
                       <td className="px-4 py-3 text-sm font-semibold text-gray-800">
-                        {entry.productIdentifier}
+                        {getProductName(entry.productIdentifier)}
                       </td>
 
                       <td className="px-4 py-3 text-center text-sm text-gray-700">
