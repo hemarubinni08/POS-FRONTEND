@@ -2,66 +2,43 @@
 
 import { useEffect, useState } from "react";
 import CommonList from "@/app/components/CommonList";
-
 import {
   listItems,
-  deleteItem,
-  updateItem,
   addItem,
+  updateItem,
+  deleteItem,
+  toggleItem,
 } from "@/services/api";
 
-const PriceList = () => {
-  const [prices, setPrices] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+const ModelPage = () => {
+  const [models, setModels] = useState([]);
+
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [addError, setAddError] = useState("");
 
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-
   const sizePerPage = 5;
-
-  const [addError, setAddError] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [viewItem, setViewItem] = useState(null);
-  // ================= ADD =================
-  const [newPrice, setNewPrice] = useState({
+  const [newModel, setNewModel] = useState({
     identifier: "",
-    costPrice: "",
-    sellingPrice: "",
+    description: "",
   });
 
-  // ================= EDIT =================
-  const [editPrice, setEditPrice] = useState(null);
+  const [editModel, setEditModel] = useState(null);
 
-  // ================= FETCH PRODUCTS =================
-  const fetchProducts = async () => {
-    try {
-      const res = await listItems("product", {
-        page: 0,
-        sizePerPage: 100,
-        sortField: "id",
-      });
+  const [viewItem, setViewItem] = useState(null);
 
-      setProducts(res?.content || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  // ================= FETCH PRICES =================
-  const fetchPrices = async () => {
+  // ================= FETCH =================
+  const fetchModels = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const res = await listItems("price", {
+      const res = await listItems("modelProduct", {
         page,
         sizePerPage,
         sortField: "id",
@@ -70,7 +47,15 @@ const PriceList = () => {
 
       const data = res?.content || [];
 
-      setPrices(data);
+      const normalized = data.map((m) => ({
+        ...m,
+        status:
+          m.status === true ||
+          m.status === 1 ||
+          m.status === "1",
+      }));
+
+      setModels(normalized);
 
       setTotalPages(
         res?.totalPages ||
@@ -82,49 +67,43 @@ const PriceList = () => {
       );
     } catch (err) {
       console.error(err);
-      setError("Failed to load prices");
+      setError("Failed to load models");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPrices();
+    fetchModels();
   }, [page, searchTerm]);
 
   // ================= ADD =================
-  const handleAddPrice = async () => {
+  const handleAddModel = async () => {
     try {
       setAddError("");
 
       const response = await addItem(
-        "price",
-        newPrice
+        "modelProduct",
+        newModel
       );
 
       if (response?.success === false) {
         setAddError(
-          response.message ||
-          "Price already exists"
+          response.message || "Model already exists"
         );
         return false;
       }
 
-      setNewPrice({
+      setNewModel({
         identifier: "",
-        costPrice: "",
-        sellingPrice: "",
+        description: "",
       });
 
-      await fetchPrices();
+      await fetchModels();
       return true;
     } catch (err) {
       console.error(err);
-
-      setAddError(
-        err.response?.data?.message ||
-        "Add failed"
-      );
+      setAddError("Add failed");
       return false;
     }
   };
@@ -132,9 +111,12 @@ const PriceList = () => {
   // ================= UPDATE =================
   const handleUpdate = async () => {
     try {
-      await updateItem("price", editPrice);
-      await fetchPrices();
-      setEditPrice(null);
+      await updateItem(
+        "modelProduct",
+        editModel
+      );
+      await fetchModels();
+      setEditModel(null);
     } catch (err) {
       console.error(err);
       alert("Update failed");
@@ -143,23 +125,53 @@ const PriceList = () => {
 
   // ================= DELETE =================
   const handleDelete = async (identifier) => {
-    const confirmDelete = globalThis.confirm(
+    const ok = globalThis.confirm(
       `Delete ${identifier}?`
     );
 
-    if (!confirmDelete) return;
+    if (!ok) return;
 
     try {
-      await deleteItem("price", identifier);
+      await deleteItem(
+        "modelProduct",
+        identifier
+      );
 
-      setPrices((prev) =>
+      setModels((prev) =>
         prev.filter(
-          (p) => p.identifier !== identifier
+          (m) => m.identifier !== identifier
         )
       );
     } catch (err) {
       console.error(err);
       alert("Delete failed");
+    }
+  };
+
+  // ================= TOGGLE =================
+  const handleToggleStatus = async (
+    identifier
+  ) => {
+    setModels((prev) =>
+      prev.map((m) =>
+        m.identifier === identifier
+          ? {
+            ...m,
+            status: !m.status,
+          }
+          : m
+      )
+    );
+
+    try {
+      await toggleItem(
+        "modelProduct",
+        identifier
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Toggle failed");
+      fetchModels();
     }
   };
 
@@ -170,22 +182,27 @@ const PriceList = () => {
       render: (row, index) =>
         page * sizePerPage + index + 1,
     },
-
     {
       label: "Identifier",
       key: "identifier",
     },
     {
-      label: "Cost Price",
-      key: "costPrice",
+      label: "Description",
+      key: "description",
     },
     {
-      label: "Selling Price",
-      key: "sellingPrice",
-    },
-    {
-      label: "Difference",
-      key: "difference",
+      label: "Status",
+      render: (m) => (
+        <label className="switch">
+          <input
+            type="checkbox"
+            aria-label="Status"
+            checked={m.status}
+            onChange={() => handleToggleStatus(m.identifier)}
+          />
+          <span className="slider"></span>
+        </label>
+      ),
     },
   ];
 
@@ -197,7 +214,8 @@ const PriceList = () => {
     },
     {
       label: "Edit ✏️",
-      onClick: (row) => setEditPrice(row),
+      onClick: (row) =>
+        setEditModel(row),
     },
     {
       label: "Delete 🗑",
@@ -210,22 +228,11 @@ const PriceList = () => {
   const addFields = [
     {
       name: "identifier",
-      label: "Product",
-      type: "select",
-      options: products.map((p) => ({
-        label: p.identifier,
-        value: p.identifier,
-      })),
+      label: "Identifier",
     },
     {
-      name: "costPrice",
-      label: "Cost Price",
-      type: "number",
-    },
-    {
-      name: "sellingPrice",
-      label: "Selling Price",
-      type: "number",
+      name: "description",
+      label: "Description",
     },
   ];
 
@@ -237,21 +244,15 @@ const PriceList = () => {
       disabled: true,
     },
     {
-      name: "costPrice",
-      label: "Cost Price",
-      type: "number",
-    },
-    {
-      name: "sellingPrice",
-      label: "Selling Price",
-      type: "number",
+      name: "description",
+      label: "Description",
     },
   ];
 
   return (
     <CommonList
-      title="Prices"
-      data={prices}
+      title="Models"
+      data={models}
       columns={columns}
       loading={loading}
       error={error}
@@ -260,29 +261,24 @@ const PriceList = () => {
       setPage={setPage}
       sizePerPage={sizePerPage}
       totalPages={totalPages}
-      // ADD
-      onAdd={() => { setAddError(""); }}
-      addButtonText="+ Add Price"
-      newItem={newPrice}
-      setNewItem={setNewPrice}
-      handleAdd={handleAddPrice}
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+      onAdd={() => setAddError("")}
+      addButtonText="+ Add Model"
+      newItem={newModel}
+      setNewItem={setNewModel}
+      handleAdd={handleAddModel}
       addFields={addFields}
-      // EDIT
-      editItem={editPrice}
-      setEditItem={setEditPrice}
+      editItem={editModel}
+      setEditItem={setEditModel}
       handleUpdate={handleUpdate}
       editFields={editFields}
-      // ACTIONS
       actions={actions}
       viewItem={viewItem}
       setViewItem={setViewItem}
-      emptyMessage="No prices found"
-
-      searchTerm={searchTerm}
-      setSearchTerm={setSearchTerm}
-
+      emptyMessage="No models found"
     />
   );
 };
 
-export default PriceList;
+export default ModelPage;

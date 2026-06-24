@@ -9,7 +9,6 @@ const api = axios.create({
 });
  
 // ================= TOKEN INTERCEPTOR =================
-// ================= TOKEN INTERCEPTOR =================
 api.interceptors.request.use(
   (config) => {
     const token = getToken();
@@ -50,7 +49,7 @@ const DEFAULT_PAGINATION = {
   page: 0,
   sizePerPage: 1,
   sortField: "identifier",
-};
+};  
  
 // ================= LIST =================
 export const listItems = async (model, params = {}) => {
@@ -83,7 +82,6 @@ export const addItem = async (model, data) => {
 };
  
 // ================= GET =================
-// ================= GET =================
 export const getItem = async (model, value) => {
   const paramName =
     model === "user"
@@ -104,7 +102,7 @@ export const getItem = async (model, value) => {
  
 // ================= UPDATE =================
 export const updateItem = async (model, data) => {
-  const response = await api.post(
+  const response = await api.put(
     `/api/${model}/update`,
     data
   );
@@ -113,7 +111,7 @@ export const updateItem = async (model, data) => {
 };
  
 export const deleteItem = async (model, value, key = "identifier") => {
-  const response = await api.get(`/api/${model}/delete`, {
+  const response = await api.delete(`/api/${model}/delete`, {
     params: {
       [key]: value,
     },
@@ -125,12 +123,14 @@ export const deleteItem = async (model, value, key = "identifier") => {
 export const toggleItem = async (model, identifier) => {
   const response = await api.post(
     `/api/${model}/toggleStatus`,
-    null,
+    identifier, // 👈 send raw string
     {
-      params: { identifier },
+      headers: {
+        "Content-Type": "text/plain",
+      },
     }
   );
- 
+
   return response.data;
 };
  

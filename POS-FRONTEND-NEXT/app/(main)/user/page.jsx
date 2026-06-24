@@ -26,11 +26,15 @@ const getColumns = (page, sizePerPage) => [
 
 const getActions = (setEditUser, handleDelete) => [
   {
-    label: "✏️",
+    label: "View 👁️",
+    onClick: (row) => setViewItem(row),
+    },
+  {
+    label: "Edit ✏️",
     onClick: (row) => setEditUser(row),
   },
   {
-    label: "🗑",
+    label: "Delete 🗑",
     onClick: (row) => handleDelete(row.username),
   },
 ];
@@ -78,6 +82,7 @@ const UserList = () => {
   const sizePerPage = 5;
   const [searchTerm, setSearchTerm] = useState("");
   const [editUser, setEditUser] = useState(null);
+  const [viewItem, setViewItem] = useState(null);
 
   // ================= FETCH USERS =================
   const fetchUsers = useCallback(async () => {
@@ -142,7 +147,7 @@ const UserList = () => {
   const handleUpdate = useCallback(async () => {
     try {
       await updateItem("user", editUser);
-      fetchUsers();
+      await fetchUsers();
       setEditUser(null);
     } catch (err) {
       console.error(err);
@@ -179,6 +184,8 @@ const UserList = () => {
       sizePerPage={sizePerPage}
       columns={columns}
       actions={actions}
+      viewItem={viewItem}
+      setViewItem={setViewItem}
       editItem={editUser}
       setEditItem={setEditUser}
       handleUpdate={handleUpdate}

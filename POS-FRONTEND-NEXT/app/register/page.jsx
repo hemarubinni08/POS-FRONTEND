@@ -122,7 +122,8 @@ function Register() {
         )}
 
         <input
-          type="text"
+          type="email"
+          required
           placeholder="Username"
           value={username}
           onChange={(e) =>
@@ -180,14 +181,16 @@ function Register() {
         </p>
 
         <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-          style={styles.input}
-        />
+            id="password-input"
+            type="password"
+            required
+            minLength={8}
+            pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$"
+            title="Password must contain at least 8 characters, one uppercase letter, one number and one special character"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={styles.input}
+          />
 
         <button
           type="submit"
