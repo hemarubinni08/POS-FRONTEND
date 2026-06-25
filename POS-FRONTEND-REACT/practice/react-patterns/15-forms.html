@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lesson 15 – Forms</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 750px; margin: 40px auto; background: #f8fafc; }
+    .box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 14px; border-radius: 8px; font-size: 13px; }
+    input, select { padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; width: 100%; box-sizing: border-box; margin-top: 4px; outline: none; }
+    input:focus, select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    label { font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 2px; }
+    .field { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
+    button { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+    .error { background: #fef2f2; color: #dc2626; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
+    .success { background: #f0fdf4; color: #166534; padding: 10px; border-radius: 8px; font-size: 13px; }
+  </style>
+</head>
+<body>
+<h1>Lesson 15: Forms</h1>
+<div class="box">
+  <b>Pattern used in your project (UserAdd.jsx, Login.jsx, Register.jsx):</b>
+  <pre>{`// 1. State for each field
+const [username, setUsername] = useState("");
+const [password, setPassword] = useState("");
+const [error, setError] = useState("");
+const [loading, setLoading] = useState(false);
+
+// 2. Submit handler
+const handleSubmit = async (e) => {
+  e.preventDefault();   // stop page refresh
+  setLoading(true);
+  try {
+    await axiosInstance.post('/user/add', { username, password });
+    navigate('/profile/user');
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
+// 3. Controlled form
+<form onSubmit={handleSubmit}>
+  <input value={username} onChange={e => setUsername(e.target.value)} />
+  <button type="submit" disabled={loading}>
+    {loading ? "Saving..." : "Add User"}
+  </button>
+</form>`}</pre>
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+  const { useState } = React;
+
+  // Simulating UserAdd.jsx exactly
+  function UserAddForm() {
+    const [username, setUsername] = useState("");
+    const [name, setName] = useState("");
+    const [password, setPassword] = useState("");
+    const [phoneNo, setPhoneNo] = useState("");
+    const [selectedRoles, setSelectedRoles] = useState([]);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+
+    const roles = [
+      { identifier: "ROLE_ADMIN" },
+      { identifier: "ROLE_CASHIER" },
+      { identifier: "ROLE_MANAGER" },
+    ];
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setError("");
+
+      // Validation
+      if (!username || !name || !password) {
+        setError("Please fill all required fields");
+        return;
+      }
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // Simulate API call (in real: await axiosInstance.post('/user/add', {...}))
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        const payload = { username, name, password, phoneNo, roles: selectedRoles };
+        console.log("Payload sent to API:", payload);
+        setSubmitted(true);
+      } catch (err) {
+        setError("Failed to add user. Try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (submitted) {
+      return (
+        <div className="box">
+          <div className="success">
+            ✅ User added successfully!<br />
+            <b>Username:</b> {username}<br />
+            <b>Name:</b> {name}<br />
+            <b>Roles:</b> {selectedRoles.join(", ") || "None"}
+          </div>
+          <button onClick={() => { setSubmitted(false); setUsername(""); setName(""); setPassword(""); setPhoneNo(""); setSelectedRoles([]); }}
+            style={{ marginTop: "10px", background: "#6366f1", color: "white" }}>
+            Add Another
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="box">
+        <b>Simulated UserAdd.jsx Form</b>
+        <p style={{ color: "#64748b", fontSize: "13px" }}>Open browser console (F12) to see the payload logged on submit</p>
+
+        <form onSubmit={handleSubmit} style={{ marginTop: "12px" }}>
+          {error && <div className="error">{error}</div>}
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            <div className="field">
+              <label>Username (email) *</label>
+              <input type="email" placeholder="Enter email" value={username} onChange={e => setUsername(e.target.value)} required />
+            </div>
+            <div className="field">
+              <label>Full Name *</label>
+              <input type="text" placeholder="Enter full name" value={name} onChange={e => setName(e.target.value)} required />
+            </div>
+            <div className="field">
+              <label>Password * (min 6 chars)</label>
+              <input type="password" placeholder="Enter password" value={password}
+                onChange={e => setPassword(e.target.value)} minLength={6} required />
+            </div>
+            <div className="field">
+              <label>Phone Number</label>
+              <input type="tel" placeholder="10-digit number" value={phoneNo} maxLength={10}
+                onKeyDown={e => { if (!/[0-9]/.test(e.key) && !["Backspace","Delete","Tab"].includes(e.key)) e.preventDefault(); }}
+                onChange={e => setPhoneNo(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="field" style={{ gridColumn: "1/-1" }}>
+            <label>Roles (Ctrl+Click to select multiple)</label>
+            <select multiple value={selectedRoles}
+              onChange={e => setSelectedRoles(Array.from(e.target.selectedOptions, opt => opt.value))}
+              style={{ height: "90px" }}>
+              {roles.map(role => (
+                <option key={role.identifier} value={role.identifier}>{role.identifier}</option>
+              ))}
+            </select>
+            <span style={{ fontSize: "12px", color: "#94a3b8" }}>Selected: {selectedRoles.join(", ") || "none"}</span>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px" }}>
+            <button type="button" onClick={() => { setUsername(""); setName(""); setPassword(""); setPhoneNo(""); setSelectedRoles([]); setError(""); }}
+              style={{ background: "#f1f5f9", color: "#475569" }}>
+              Cancel
+            </button>
+            <button type="submit" disabled={loading} style={{ background: loading ? "#94a3b8" : "#22c55e", color: "white" }}>
+              {loading ? "Saving..." : "Add User"}
+            </button>
+          </div>
+        </form>
+
+        <div style={{ marginTop: "12px", background: "#f8fafc", padding: "10px", borderRadius: "8px", fontSize: "12px" }}>
+          <b>Current state:</b> username="{username}" | name="{name}" | password="{password}" | phone="{phoneNo}" | roles=[{selectedRoles.join(",")}]
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<UserAddForm />);
+</script>
+</body>
+</html>

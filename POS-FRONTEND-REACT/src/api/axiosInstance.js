@@ -11,7 +11,8 @@ axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   const url = config.url || "";
 
-  // Public endpoints that do not require a login token
+  // Public endpoints that do not require a login toke
+  // n
   const publicPaths = [
     "/authenticate",
     "/user/add",

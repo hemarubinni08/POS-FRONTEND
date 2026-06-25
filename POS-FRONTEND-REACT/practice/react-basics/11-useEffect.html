@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lesson 11 – useEffect</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 750px; margin: 40px auto; background: #f8fafc; }
+    .box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 14px; border-radius: 8px; font-size: 13px; }
+    button { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; background: #3b82f6; color: white; }
+    .log { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 13px; min-height: 40px; }
+  </style>
+</head>
+<body>
+<h1>Lesson 11: useEffect</h1>
+<div class="box">
+  <b>Concept:</b> useEffect runs code AFTER the component renders. Used to:
+  <ul>
+    <li>Fetch data from API when page loads</li>
+    <li>Run code when a value changes</li>
+  </ul>
+  <pre>{`useEffect(() => {
+  // code to run
+}, [dependencies]);
+//  ↑ empty [] = run ONCE when component loads
+//  ↑ [value] = run whenever "value" changes
+//  ↑ no [] = run after EVERY render (dangerous!)`}</pre>
+  <b>From your project:</b>
+  <pre>{`// Profile.jsx — fetch user data when page loads:
+useEffect(() => {
+  fetchUserData(username);
+}, []);  // ← [] means: run once on load
+
+// ListTemplate.jsx — re-fetch when page or rowsPerPage changes:
+useEffect(() => {
+  fetchData(page);
+}, [page, rowsPerPage]);  // ← runs when page or rowsPerPage changes`}</pre>
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+  const { useState, useEffect } = React;
+
+  // ── EXAMPLE 1: Run ONCE on load (empty []) ────────────────
+  // Like Profile.jsx fetching user data
+  function UserProfile() {
+    const [user, setUser] = useState(null);
+    const [log, setLog] = useState([]);
+
+    const addLog = (msg) => setLog(prev => [...prev, msg]);
+
+    useEffect(() => {
+      addLog("useEffect fired! (component loaded)");
+      addLog("Simulating API call to /user/get...");
+
+      // Simulate API call
+      setTimeout(() => {
+        const fakeUser = { name: "Shoaib Ejaz", username: "shoaib@mail.com", phoneNo: "9876543210" };
+        setUser(fakeUser);
+        addLog("Data received! setUser() called → component re-renders");
+      }, 1500);
+
+    }, []); // ← [] = run once when component mounts
+
+    return (
+      <div className="box">
+        <b>Example 1: useEffect with [] — runs once on load</b>
+        <pre style={{ fontSize: "12px" }}>{`useEffect(() => {
+  fetchUserData();  // runs ONCE when component loads
+}, []);`}</pre>
+
+        <div style={{ marginBottom: "12px" }}>
+          <b>Log:</b>
+          <div className="log">
+            {log.map((entry, i) => <div key={i}>→ {entry}</div>)}
+            {log.length === 0 && "Waiting..."}
+          </div>
+        </div>
+
+        {user ? (
+          <div style={{ background: "#f0fdf4", padding: "12px", borderRadius: "8px" }}>
+            <b>User loaded:</b> {user.name} | {user.username} | {user.phoneNo}
+          </div>
+        ) : (
+          <div style={{ color: "#64748b" }}>Loading user...</div>
+        )}
+      </div>
+    );
+  }
+
+  // ── EXAMPLE 2: Run when dependency changes ────────────────
+  // Like ListTemplate re-fetching when page changes
+  function PaginatedList() {
+    const [page, setPage] = useState(0);
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    // All data (simulating 9 items)
+    const allData = [
+      { id: 1, identifier: "Rack A" }, { id: 2, identifier: "Rack B" }, { id: 3, identifier: "Rack C" },
+      { id: 4, identifier: "Rack D" }, { id: 5, identifier: "Rack E" }, { id: 6, identifier: "Rack F" },
+      { id: 7, identifier: "Rack G" }, { id: 8, identifier: "Rack H" }, { id: 9, identifier: "Rack I" },
+    ];
+    const sizePerPage = 3;
+    const totalPages = Math.ceil(allData.length / sizePerPage);
+
+    useEffect(() => {
+      // This runs every time "page" changes (just like ListTemplate.jsx!)
+      setLoading(true);
+      setTimeout(() => {
+        const start = page * sizePerPage;
+        const pageData = allData.slice(start, start + sizePerPage);
+        setData(pageData);
+        setLoading(false);
+      }, 500);
+    }, [page]); // ← runs when "page" changes
+
+    return (
+      <div className="box">
+        <b>Example 2: useEffect with [page] — re-fetches when page changes</b>
+        <pre style={{ fontSize: "12px" }}>{`useEffect(() => {
+  fetchData(page);  // re-fetch when page changes
+}, [page]);  // ← dependency`}</pre>
+
+        {loading ? (
+          <div style={{ color: "#64748b" }}>Loading...</div>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", marginTop: "8px" }}>
+            <thead><tr style={{ background: "#1e293b", color: "white" }}>
+              <th style={{ padding: "8px", textAlign: "left" }}>ID</th>
+              <th style={{ padding: "8px", textAlign: "left" }}>Identifier</th>
+            </tr></thead>
+            <tbody>
+              {data.map(item => (
+                <tr key={item.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                  <td style={{ padding: "8px" }}>{item.id}</td>
+                  <td style={{ padding: "8px" }}>{item.identifier}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        <div style={{ display: "flex", gap: "8px", marginTop: "12px", alignItems: "center" }}>
+          <button onClick={() => setPage(p => Math.max(p - 1, 0))} disabled={page === 0}
+            style={{ background: page === 0 ? "#94a3b8" : "#1e293b" }}>
+            Previous
+          </button>
+          <span style={{ fontSize: "13px" }}>Page {page + 1} of {totalPages}</span>
+          <button onClick={() => setPage(p => Math.min(p + 1, totalPages - 1))} disabled={page >= totalPages - 1}
+            style={{ background: page >= totalPages - 1 ? "#94a3b8" : "#1e293b" }}>
+            Next
+          </button>
+        </div>
+        <p style={{ fontSize: "12px", color: "#64748b" }}>
+          Watch: clicking Next/Previous updates "page" → useEffect fires → new data loads
+        </p>
+      </div>
+    );
+  }
+
+  function App() {
+    return (
+      <div>
+        <UserProfile />
+        <PaginatedList />
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

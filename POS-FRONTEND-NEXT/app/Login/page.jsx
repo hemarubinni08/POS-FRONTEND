@@ -38,7 +38,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex bg-slate-900">
 
-      {/* Left Panel */}
+      
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-blue-700 to-blue-900">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center">
@@ -68,11 +68,11 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right Panel — Login Form */}
+    
       <div className="flex-1 flex items-center justify-center px-6 py-12 bg-white">
         <div className="w-full max-w-sm">
 
-          {/* Mobile logo */}
+    
           <div className="flex lg:hidden items-center gap-2 mb-8">
             <div className="w-8 h-8 rounded-lg bg-blue-700 flex items-center justify-center">
               <span className="text-white font-black text-xs">POS</span>

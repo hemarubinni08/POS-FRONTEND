@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lesson 16 – Async / API Calls</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 750px; margin: 40px auto; background: #f8fafc; }
+    .box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 14px; border-radius: 8px; font-size: 13px; }
+    button { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+  </style>
+</head>
+<body>
+<h1>Lesson 16: Async/Await & API Calls</h1>
+<div class="box">
+  <b>Concept:</b> API calls take time. async/await lets you wait for them without freezing the page.
+  <pre>{`// Without async/await (confusing callbacks):
+fetch('/api/brands').then(res => res.json()).then(data => setData(data));
+
+// With async/await (reads like normal code):
+const fetchData = async () => {
+  setLoading(true);
+  try {
+    const response = await axiosInstance.post('/brand/list', { page: 0, sizePerPage: 10 });
+    setData(response.data.dtoList);  // ← wait for response, then use it
+    setTotalPages(response.data.totalPages);
+  } catch (error) {
+    setError(error.response?.data?.message || "Failed to load");
+  } finally {
+    setLoading(false);  // ← always runs, success or failure
+  }
+};
+
+useEffect(() => {
+  fetchData();  // call it when component loads
+}, []);`}</pre>
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+  const { useState, useEffect } = React;
+
+  // ── Simulate what axiosInstance does ─────────────────────
+  // (In your project, axiosInstance adds the Authorization header automatically)
+  const fakeApi = {
+    post: async (url, body) => {
+      await new Promise(r => setTimeout(r, 1000)); // simulate network delay
+
+      if (url === "/brand/list") {
+        const allBrands = [
+          { id: 1, identifier: "APPLE", status: true },
+          { id: 2, identifier: "SAMSUNG", status: true },
+          { id: 3, identifier: "NOKIA", status: false },
+          { id: 4, identifier: "SONY", status: true },
+          { id: 5, identifier: "LG", status: false },
+        ];
+        const start = body.page * body.sizePerPage;
+        const dtoList = allBrands.slice(start, start + body.sizePerPage);
+        return {
+          data: {
+            dtoList,
+            totalPages: Math.ceil(allBrands.length / body.sizePerPage),
+            totalRecords: allBrands.length,
+          }
+        };
+      }
+      if (url === "/authenticate") {
+        if (body.username === "admin@pos.com" && body.password === "admin123") {
+          return { data: { token: "fake-jwt-token-abc123" } };
+        }
+        throw { response: { data: { message: "Invalid username or password" } } };
+      }
+    }
+  };
+
+  // ── EXAMPLE 1: Fetching list data (like ListTemplate.jsx) ──
+  function BrandListDemo() {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const sizePerPage = 2;
+
+    const fetchData = async (currentPage) => {
+      setLoading(true);
+      setError("");
+      try {
+        // This is EXACTLY what ListTemplate.jsx does:
+        const response = await fakeApi.post("/brand/list", {
+          page: currentPage,
+          sizePerPage,
+          sortDirection: "ASC",
+          sortField: "identifier",
+        });
+        setData(response.data.dtoList);
+        setTotalPages(response.data.totalPages);
+      } catch (err) {
+        setError(err?.response?.data?.message || err?.message || "Failed to load");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    useEffect(() => {
+      fetchData(page);
+    }, [page]);
+
+    return (
+      <div className="box">
+        <b>Example 1: Fetching paginated list — like ListTemplate.jsx</b>
+        <div style={{ marginTop: "12px" }}>
+          {loading && <div style={{ color: "#3b82f6" }}>⏳ Loading...</div>}
+          {error && <div style={{ color: "#dc2626" }}>❌ {error}</div>}
+          {!loading && !error && (
+            <>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                <thead><tr style={{ background: "#1e293b", color: "white" }}>
+                  <th style={{ padding: "8px", textAlign: "left" }}>ID</th>
+                  <th style={{ padding: "8px", textAlign: "left" }}>Identifier</th>
+                  <th style={{ padding: "8px", textAlign: "left" }}>Status</th>
+                </tr></thead>
+                <tbody>
+                  {data.map(item => (
+                    <tr key={item.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                      <td style={{ padding: "8px" }}>{item.id}</td>
+                      <td style={{ padding: "8px" }}>{item.identifier}</td>
+                      <td style={{ padding: "8px" }}>{item.status ? "✅ Active" : "❌ Inactive"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div style={{ display: "flex", gap: "8px", marginTop: "10px", alignItems: "center" }}>
+                <button onClick={() => setPage(p => Math.max(p-1, 0))} disabled={page === 0}
+                  style={{ background: page === 0 ? "#94a3b8" : "#1e293b", color: "white" }}>Previous</button>
+                <span style={{ fontSize: "13px" }}>Page {page+1} of {totalPages}</span>
+                <button onClick={() => setPage(p => p+1)} disabled={page+1 >= totalPages}
+                  style={{ background: page+1 >= totalPages ? "#94a3b8" : "#1e293b", color: "white" }}>Next</button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── EXAMPLE 2: Login (like Login.jsx) ─────────────────────
+  function LoginDemo() {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [token, setToken] = useState("");
+
+    const handleLogin = async () => {
+      setError(""); setLoading(true);
+      try {
+        const response = await fakeApi.post("/authenticate", { username, password });
+        const data = response.data;
+        if (data.token) {
+          setToken(data.token);
+          // In real project: localStorage.setItem('token', data.token); navigate('/profile');
+        }
+      } catch (err) {
+        setError(err?.response?.data?.message || "Login failed");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) {
+      return (
+        <div className="box">
+          <div style={{ color: "#166534" }}>✅ Logged in! Token received: <code style={{ fontSize: "11px" }}>{token}</code></div>
+          <button onClick={() => { setToken(""); setUsername(""); setPassword(""); }}
+            style={{ marginTop: "8px", background: "#ef4444", color: "white" }}>Logout</button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="box">
+        <b>Example 2: Login API call — like Login.jsx</b>
+        <p style={{ color: "#64748b", fontSize: "13px" }}>Try: admin@pos.com / admin123 (correct) or anything else (error)</p>
+        {error && <div style={{ background: "#fef2f2", color: "#dc2626", padding: "10px", borderRadius: "8px", fontSize: "13px", marginBottom: "10px" }}>{error}</div>}
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <input style={{ padding: "10px", border: "1px solid #cbd5e1", borderRadius: "8px" }}
+            type="email" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} />
+          <input style={{ padding: "10px", border: "1px solid #cbd5e1", borderRadius: "8px" }}
+            type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+          <button onClick={handleLogin} disabled={loading}
+            style={{ background: loading ? "#94a3b8" : "#3b82f6", color: "white" }}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  function App() {
+    return <div><BrandListDemo /><LoginDemo /></div>;
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

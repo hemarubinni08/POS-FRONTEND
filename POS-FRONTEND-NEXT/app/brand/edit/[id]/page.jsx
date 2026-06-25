@@ -1,5 +1,5 @@
 import CommonUpdateTemplate from "../../../components/CommonUpdateTemplate";
-import { STATUS_FIELD } from "../../../lib/fieldUtils";
+import { brandFields } from "../../brandFields";
 
 export default function BrandUpdate() {
   return (
@@ -7,9 +7,13 @@ export default function BrandUpdate() {
       title="Brand"
       apiPath="brand"
       recordParam="identifier"
-      extraFields={[STATUS_FIELD]}
+      extraFields={brandFields}
       onSuccessPath="/brand"
       showDescription={false}
+      showIdentifier={true}
+      identifierLabel="Identifier"
+      identifierReadOnly={true}
+      showAuditSummary={true}
     />
   );
 }

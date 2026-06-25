@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lesson 08 – What is a Component</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; background: #f8fafc; }
+    .box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+    .label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+    h1 { color: #1e293b; } h2 { color: #334155; margin-top: 30px; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; font-size: 13px; overflow-x: auto; }
+    .output { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px; }
+  </style>
+</head>
+<body>
+
+<h1>Lesson 08: What is a React Component?</h1>
+
+<div class="box">
+  <div class="label">Concept</div>
+  <p>A <strong>component</strong> is just a JavaScript function that returns HTML-like code (called JSX).</p>
+  <p>Every file in your project is a component: <code>Login.jsx</code>, <code>BrandList.jsx</code>, <code>Header.jsx</code> etc.</p>
+  <pre>
+// This is a component:
+function Greeting() {
+  return &lt;h2&gt;Hello, World!&lt;/h2&gt;;
+}
+
+// Use it like an HTML tag:
+&lt;Greeting /&gt;
+  </pre>
+</div>
+
+<h2>Live Example — Your POS components simulated:</h2>
+
+<div id="root"></div>
+
+<script type="text/babel">
+
+  // ── COMPONENT 1: Simple (like Footer.jsx) ────────────────
+  function Footer() {
+    return (
+      <div style={{ background: "white", borderTop: "1px solid #e2e8f0", padding: "12px 20px", fontSize: "14px", color: "#64748b" }}>
+        © 2025 POS System — Pod 1 — Made for your business.
+      </div>
+    );
+  }
+
+  // ── COMPONENT 2: With logic (like Header.jsx) ────────────
+  function Header() {
+    const username = "shoaib@mail.com"; // in real project: localStorage.getItem('username')
+
+    return (
+      <div style={{ background: "white", borderBottom: "1px solid #e2e8f0", padding: "12px 20px", display: "flex", justifyContent: "space-between" }}>
+        <strong>POS — Point of Sale Dashboard</strong>
+        <span style={{ color: "#64748b", fontSize: "14px" }}>{username}</span>
+      </div>
+    );
+  }
+
+  // ── COMPONENT 3: Nested — one component inside another (like Layout.jsx) ──
+  function Layout() {
+    return (
+      <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden", marginBottom: "20px" }}>
+        <Header />
+        <div style={{ padding: "20px", background: "#f8fafc" }}>
+          <p style={{ color: "#334155" }}>Main content goes here (this is the "children" area)</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // ── KEY RULES ────────────────────────────────────────────
+  function Rules() {
+    return (
+      <div className="box" style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px" }}>
+        <div style={{ fontSize: "11px", color: "#64748b", fontWeight: 600, textTransform: "uppercase", marginBottom: "10px" }}>Rules to Remember</div>
+        <ul>
+          <li>Function name MUST start with a Capital letter: <code>function BrandList()</code> ✓</li>
+          <li>Must return exactly ONE parent element (wrap in a div if needed)</li>
+          <li>JSX looks like HTML but it's JavaScript — use <code>className</code> not <code>class</code></li>
+          <li>Use <code>{'{'}...{'}'}</code> to write JavaScript inside JSX</li>
+        </ul>
+        <pre>{`function Header() {
+  const username = "shoaib@mail.com"; // JS logic here
+
+  return (
+    <div>                         {/* JSX starts here */}
+      <span>{username}</span>    {/* {} to use JS variable */}
+    </div>
+  );
+}`}</pre>
+      </div>
+    );
+  }
+
+  // ── MAIN APP ─────────────────────────────────────────────
+  function App() {
+    return (
+      <div>
+        <h2>Component Output:</h2>
+        <Layout />
+        <Rules />
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

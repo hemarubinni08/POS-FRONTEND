@@ -2,9 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import axios from "axios";
+import GopiComponent from "../Component/demo/gopi";
+function Register() {
 
-function Register(){
-    
     const [username, setUsername] = useState('');
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
@@ -13,7 +13,7 @@ function Register(){
     const [selectedRoles, setSelectedRoles] = useState([]);
     const navigate = useNavigate();
 
-    const handleRegister = async (e) =>{
+    const handleRegister = async (e) => {
         e.preventDefault();
         try {
             const response = await axiosInstance.post('/user/add', {
@@ -25,11 +25,11 @@ function Register(){
             });
 
             const data = response.data;
-            if(data.success){
+            if (data.success) {
                 alert('Registration successful!');
                 navigate('/login');
             }
-            else{
+            else {
                 alert('Registration failed: ' + (data.message || 'Unknown error'));
             };
         } catch (error) {
@@ -46,7 +46,9 @@ function Register(){
     }, []);
 
     return (
+
         <div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4'>
+            <GopiComponent />
             <div className='bg-white rounded-2xl shadow-xl p-10 w-full max-w-md'>
                 <div className='text-center mb-8'>
                     <h1 className='text-3xl font-extrabold text-red-800'>Create Account</h1>
@@ -97,6 +99,7 @@ function Register(){
                             className='border border-gray-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition'
                         />
                     </div>
+                    <GopiComponent />
                     <div className='flex flex-col gap-1'>
                         <label className='text-sm font-semibold text-gray-600'>Roles</label>
                         <select

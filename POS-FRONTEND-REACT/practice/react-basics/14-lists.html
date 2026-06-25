@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lesson 14 – Lists & Keys</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 750px; margin: 40px auto; background: #f8fafc; }
+    .box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 14px; border-radius: 8px; font-size: 13px; }
+  </style>
+</head>
+<body>
+<h1>Lesson 14: Lists & Keys</h1>
+<div class="box">
+  <b>Concept:</b> Use <code>.map()</code> to render an array of items as JSX.
+  Each item needs a unique <code>key</code> prop so React can track them.
+  <pre>{`// Array of data:
+const brands = [
+  { id: 1, identifier: "APPLE" },
+  { id: 2, identifier: "SAMSUNG" },
+];
+
+// Render as list:
+{brands.map((brand) => (
+  <tr key={brand.id}>        ← key must be unique
+    <td>{brand.id}</td>
+    <td>{brand.identifier}</td>
+  </tr>
+))}`}</pre>
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+
+  // ── EXAMPLE 1: Sidebar nodes — like your Sidebar.jsx ─────
+  function Sidebar() {
+    const nodes = [
+      { identifier: "product" },
+      { identifier: "brand" },
+      { identifier: "shelf" },
+      { identifier: "racks" },
+      { identifier: "models" },
+      { identifier: "user" },
+    ];
+
+    return (
+      <div style={{ background: "#0f172a", color: "white", width: "200px", padding: "20px", borderRadius: "12px" }}>
+        <div style={{ fontWeight: "bold", marginBottom: "16px" }}>Menu</div>
+        <nav style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          {/* This is EXACTLY your Sidebar.jsx map: */}
+          {nodes.map((node) => (
+            <button
+              key={node.identifier}   // ← unique key
+              style={{ background: "transparent", border: "none", color: "#cbd5e1", padding: "8px 12px", textAlign: "left", borderRadius: "8px", cursor: "pointer", fontSize: "13px" }}
+              onMouseOver={e => e.target.style.background = "rgba(255,255,255,0.1)"}
+              onMouseOut={e => e.target.style.background = "transparent"}
+            >
+              {node.identifier}
+            </button>
+          ))}
+        </nav>
+      </div>
+    );
+  }
+
+  // ── EXAMPLE 2: Table rows — like ListTemplate.jsx ─────────
+  function RacksTable() {
+    const data = [
+      { id: 5, identifier: "Rack A", shelf: ["Shelf 1", "Shelf 2"], status: true },
+      { id: 6, identifier: "Rack B", shelf: ["Shelf 3"], status: false },
+      { id: 7, identifier: "Rack C", shelf: ["Shelf 1"], status: true },
+    ];
+
+    const columns = [
+      { label: "ID", field: "id" },
+      { label: "Identifier", field: "identifier" },
+      { label: "Shelf", field: "shelf" },
+      { label: "Status", field: "status" },
+    ];
+
+    return (
+      <div style={{ overflowX: "auto", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+          <thead>
+            <tr style={{ background: "#1e293b", color: "white" }}>
+              {/* Map over columns for headers */}
+              {columns.map((col, index) => (
+                <th key={index} style={{ padding: "10px 12px", textAlign: "left" }}>
+                  {col.label}
+                </th>
+              ))}
+              <th style={{ padding: "10px 12px", textAlign: "right" }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* Map over data for rows */}
+            {data.map((item) => (
+              <tr key={item.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                <td style={{ padding: "10px 12px" }}>{item.id}</td>
+                <td style={{ padding: "10px 12px" }}>{item.identifier}</td>
+                <td style={{ padding: "10px 12px" }}>
+                  {/* Map inside map — shelf tags */}
+                  {item.shelf?.map((shelf) => (
+                    <span key={shelf} style={{ background: "#dbeafe", color: "#1d4ed8", padding: "2px 8px", borderRadius: "4px", fontSize: "11px", marginRight: "4px" }}>
+                      {shelf}
+                    </span>
+                  ))}
+                </td>
+                <td style={{ padding: "10px 12px" }}>
+                  <span style={{
+                    background: item.status ? "#86efac" : "#fca5a5",
+                    color: item.status ? "#166534" : "#991b1b",
+                    padding: "2px 10px", borderRadius: "999px", fontSize: "12px"
+                  }}>
+                    {item.status ? "Active" : "Inactive"}
+                  </span>
+                </td>
+                <td style={{ padding: "10px 12px", textAlign: "right" }}>
+                  <button style={{ background: "#f59e0b", color: "#1e293b", border: "none", borderRadius: "6px", padding: "5px 12px", cursor: "pointer", marginRight: "4px" }}>Edit</button>
+                  <button style={{ background: "#ef4444", color: "white", border: "none", borderRadius: "6px", padding: "5px 12px", cursor: "pointer" }}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  function App() {
+    return (
+      <div>
+        <div className="box">
+          <b>Example 1: Sidebar nodes — nodes.map() from Sidebar.jsx</b>
+          <div style={{ marginTop: "12px" }}>
+            <Sidebar />
+          </div>
+          <pre style={{ marginTop: "12px", fontSize: "12px" }}>{`// Sidebar.jsx:
+{nodes.map((node) => (
+  <button key={node.identifier}>
+    {node.identifier}
+  </button>
+))}`}</pre>
+        </div>
+
+        <div className="box">
+          <b>Example 2: Table rows + nested map for shelf tags — from ListTemplate.jsx + RacksList.jsx</b>
+          <div style={{ marginTop: "12px" }}>
+            <RacksTable />
+          </div>
+          <pre style={{ marginTop: "12px", fontSize: "12px" }}>{`// Two .map() calls:
+{data.map((item) => (         // outer: each row
+  <tr key={item.id}>
+    <td>
+      {item.shelf?.map((shelf) => (  // inner: each shelf tag
+        <span key={shelf}>{shelf}</span>
+      ))}
+    </td>
+  </tr>
+))}`}</pre>
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

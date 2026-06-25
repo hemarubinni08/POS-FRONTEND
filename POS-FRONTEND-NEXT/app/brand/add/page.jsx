@@ -1,12 +1,12 @@
 import CommonAddTemplate from "../../components/CommonAddTemplate";
-import { STATUS_FIELD } from "../../lib/fieldUtils";
+import { brandFields } from "../brandFields";
 
 export default function BrandAdd() {
   return (
     <CommonAddTemplate
       title="Brand"
       apiPath="brand"
-      extraFields={[STATUS_FIELD]}
+      extraFields={brandFields}
       onSuccessPath="/brand"
       showDescription={false}
     />

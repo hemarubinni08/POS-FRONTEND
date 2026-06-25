@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lesson 18 – Router (useNavigate & useParams)</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 750px; margin: 40px auto; background: #f8fafc; }
+    .box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 14px; border-radius: 8px; font-size: 12px; }
+    button { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+    .screen { border: 2px solid #e2e8f0; border-radius: 8px; padding: 16px; min-height: 100px; background: #f8fafc; }
+    .url-bar { background: #1e293b; color: #a3e635; padding: 8px 14px; border-radius: 8px; font-family: monospace; font-size: 13px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+<h1>Lesson 18: useNavigate & useParams</h1>
+<div class="box">
+  <b>Concept — Two router hooks your project uses:</b>
+  <pre>{`// useNavigate — go to a different page
+const navigate = useNavigate();
+navigate('/profile/brand');          // go to brand list
+navigate('/profile/brand/edit/5');   // go to edit page with id=5
+navigate(-1);                        // go back (like browser back button)
+
+// useParams — read values from the URL
+// Route defined as: /profile/brand/edit/:identifier
+// URL in browser:   /profile/brand/edit/APPLE
+const { identifier } = useParams();
+console.log(identifier); // → "APPLE"
+
+// Route: /profile/racks/edit/:id
+// URL:   /profile/racks/edit/5
+const { id } = useParams();
+console.log(id); // → "5"`}</pre>
+</div>
+
+<div class="box">
+  <b>Your App.jsx routes:</b>
+  <pre>{`<Route path='/profile/brand' element={<BrandList />} />
+<Route path='/profile/brand/edit/:identifier' element={<BrandUpdate />} />
+//                              ↑ :identifier = variable part of URL
+
+<Route path='/profile/racks/edit/:id' element={<RacksUpdate />} />
+//                            ↑ :id = variable part
+
+<Route path='/profile/user/edit/:username' element={<UserUpdate />} />
+//                             ↑ :username = variable part`}</pre>
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+  const { useState } = React;
+
+  // ── Since this is a standalone HTML, we simulate routing manually ──
+  // In your real project, React Router handles this automatically
+
+  function App() {
+    const [currentPage, setCurrentPage] = useState("list");
+    const [currentUrl, setCurrentUrl] = useState("/profile/brand");
+    const [editId, setEditId] = useState(null);
+    const [editIdentifier, setEditIdentifier] = useState(null);
+
+    const navigate = (path) => {
+      setCurrentUrl(path);
+      if (path === "/profile/brand") { setCurrentPage("list"); }
+      else if (path === "/profile/brand/add") { setCurrentPage("add"); }
+      else if (path.includes("/edit/")) {
+        const parts = path.split("/edit/");
+        setEditIdentifier(parts[1]);
+        setCurrentPage("edit");
+      }
+    };
+
+    const brands = [
+      { id: 1, identifier: "APPLE", status: true },
+      { id: 2, identifier: "SAMSUNG", status: false },
+      { id: 3, identifier: "NOKIA", status: true },
+    ];
+
+    return (
+      <div>
+        <div className="url-bar">🌐 {currentUrl}</div>
+
+        {/* ── LIST PAGE ─────────────────────── */}
+        {currentPage === "list" && (
+          <div className="screen">
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+              <b>Brand Management</b>
+              <button onClick={() => navigate("/profile/brand/add")}
+                style={{ background: "#22c55e", color: "white", fontSize: "13px" }}>+ Add Brand</button>
+            </div>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+              <thead><tr style={{ background: "#1e293b", color: "white" }}>
+                <th style={{ padding: "8px", textAlign: "left" }}>ID</th>
+                <th style={{ padding: "8px", textAlign: "left" }}>Identifier</th>
+                <th style={{ padding: "8px", textAlign: "right" }}>Actions</th>
+              </tr></thead>
+              <tbody>
+                {brands.map(brand => (
+                  <tr key={brand.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                    <td style={{ padding: "8px" }}>{brand.id}</td>
+                    <td style={{ padding: "8px" }}>{brand.identifier}</td>
+                    <td style={{ padding: "8px", textAlign: "right" }}>
+                      {/* navigate() called with the brand's identifier in the URL */}
+                      <button
+                        onClick={() => navigate(`/profile/brand/edit/${brand.identifier}`)}
+                        style={{ background: "#f59e0b", color: "#1e293b", fontSize: "12px", marginRight: "4px" }}>
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ marginTop: "12px", background: "#f0f9ff", padding: "10px", borderRadius: "8px", fontSize: "12px" }}>
+              Click Edit → URL changes to <code>/profile/brand/edit/APPLE</code> → BrandUpdate component loads → useParams() reads "APPLE"
+            </div>
+          </div>
+        )}
+
+        {/* ── ADD PAGE ──────────────────────── */}
+        {currentPage === "add" && (
+          <div className="screen">
+            <pre style={{ fontSize: "11px", marginBottom: "12px" }}>{`// BrandAdd.jsx:
+// navigate('/profile/brand') → goes back to list
+// navigate(-1) → same as browser back button`}</pre>
+            <b>Add Brand</b>
+            <p style={{ color: "#64748b", fontSize: "13px" }}>
+              Cancel button calls <code>navigate(-1)</code> or <code>navigate('/profile/brand')</code>
+            </p>
+            <button onClick={() => navigate("/profile/brand")}
+              style={{ background: "#f1f5f9", color: "#475569" }}>← Back to List</button>
+          </div>
+        )}
+
+        {/* ── EDIT PAGE ─────────────────────── */}
+        {currentPage === "edit" && (
+          <div className="screen">
+            <pre style={{ fontSize: "11px", marginBottom: "12px" }}>{`// BrandUpdate.jsx:
+// Route path: /profile/brand/edit/:identifier
+// Current URL: /profile/brand/edit/${editIdentifier}
+const { identifier } = useParams();
+// identifier = "${editIdentifier}"
+// Now fetch: GET /brand/update?identifier=${editIdentifier}`}</pre>
+            <b>Update Brand</b>
+            <div style={{ background: "#fefce8", border: "1px solid #fde047", padding: "10px", borderRadius: "8px", fontSize: "13px", marginBottom: "12px" }}>
+              <b>useParams() gave us:</b> identifier = "<b>{editIdentifier}</b>"<br />
+              → Now we call: <code>GET /brand/update?identifier={editIdentifier}</code> to load the existing data
+            </div>
+            <button onClick={() => navigate("/profile/brand")}
+              style={{ background: "#f1f5f9", color: "#475569" }}>← Back to List</button>
+          </div>
+        )}
+
+        <div className="box" style={{ marginTop: "16px" }}>
+          <b>Summary — useNavigate vs useParams:</b>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", marginTop: "8px" }}>
+            <thead><tr style={{ background: "#f1f5f9" }}>
+              <th style={{ padding: "8px", textAlign: "left" }}>Hook</th>
+              <th style={{ padding: "8px", textAlign: "left" }}>Purpose</th>
+              <th style={{ padding: "8px", textAlign: "left" }}>Example in project</th>
+            </tr></thead>
+            <tbody>
+              <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
+                <td style={{ padding: "8px" }}><code>useNavigate()</code></td>
+                <td style={{ padding: "8px" }}>Send user to another page</td>
+                <td style={{ padding: "8px" }}>After login → navigate('/profile')</td>
+              </tr>
+              <tr>
+                <td style={{ padding: "8px" }}><code>useParams()</code></td>
+                <td style={{ padding: "8px" }}>Read :variable from URL</td>
+                <td style={{ padding: "8px" }}>BrandUpdate reads :identifier from URL</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

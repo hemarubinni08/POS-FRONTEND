@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lesson 09 – Props</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 750px; margin: 40px auto; background: #f8fafc; }
+    .box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; font-size: 13px; }
+    .label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+    .tag { background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-family: monospace; }
+  </style>
+</head>
+<body>
+
+<h1>Lesson 09: Props</h1>
+
+<div class="box">
+  <div class="label">Concept</div>
+  <p><strong>Props</strong> = data you pass INTO a component (like function arguments).</p>
+  <p>In your project, <code>ListTemplate</code> receives: <span class="tag">title</span> <span class="tag">columns</span> <span class="tag">urlName</span> <span class="tag">pageSize</span> etc.</p>
+  <pre>{`// Passing props:
+<ListTemplate
+  title="Brand Management"
+  urlName="brand"
+  pageSize={4}
+/>
+
+// Receiving props inside the component:
+function ListTemplate({ title, urlName, pageSize }) {
+  // now you can use title, urlName, pageSize directly
+}`}</pre>
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+
+  // ── EXAMPLE 1: Basic Props ────────────────────────────────
+  // Like a UserCard component that receives user data
+  function UserCard({ name, email, role }) {
+    return (
+      <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
+        <div style={{ fontWeight: "bold", color: "#1e293b" }}>{name}</div>
+        <div style={{ color: "#64748b", fontSize: "13px" }}>{email}</div>
+        <div style={{ marginTop: "8px" }}>
+          <span style={{ background: "#dbeafe", color: "#1d4ed8", padding: "2px 10px", borderRadius: "999px", fontSize: "12px" }}>
+            {role}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // ── EXAMPLE 2: Default Props ──────────────────────────────
+  // Just like ListTemplate has: showStatus = false, editKey = "identifier"
+  function StatusBadge({ status = true, activeLabel = "Active", inactiveLabel = "Inactive" }) {
+    return (
+      <span style={{
+        background: status ? "#86efac" : "#fca5a5",
+        color: status ? "#166534" : "#991b1b",
+        padding: "3px 12px",
+        borderRadius: "999px",
+        fontSize: "12px",
+        fontWeight: "bold"
+      }}>
+        {status ? activeLabel : inactiveLabel}
+      </span>
+    );
+  }
+
+  // ── EXAMPLE 3: children prop ─────────────────────────────
+  // This is EXACTLY how Layout.jsx works in your project:
+  //   function Layout({ children }) {
+  //     return <div><Sidebar/><main>{children}</main></div>
+  //   }
+  //   Usage: <Layout><BrandList /></Layout>
+  function Card({ title, children }) {
+    return (
+      <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "12px", marginBottom: "16px" }}>
+        <div style={{ background: "#1e293b", color: "white", padding: "10px 16px", borderRadius: "12px 12px 0 0", fontWeight: "bold" }}>
+          {title}
+        </div>
+        <div style={{ padding: "16px" }}>
+          {children}  {/* Whatever is passed between <Card>...</Card> tags */}
+        </div>
+      </div>
+    );
+  }
+
+  // ── EXAMPLE 4: Passing functions as props ─────────────────
+  // Just like onLoginSuccess in Login.jsx, or onChange in DropdownTemplate
+  function DeleteButton({ label, onDelete }) {
+    return (
+      <button
+        onClick={onDelete}
+        style={{ background: "#ef4444", color: "white", border: "none", borderRadius: "8px", padding: "6px 16px", cursor: "pointer" }}
+      >
+        Delete {label}
+      </button>
+    );
+  }
+
+  // ── REAL PROJECT SIMULATION ───────────────────────────────
+  // Simulating how BrandList uses ListTemplate via props
+  function SimpleListTemplate({ title, urlName, showStatus, pageSize = 10 }) {
+    return (
+      <div style={{ background: "#f8fafc", padding: "12px", borderRadius: "8px" }}>
+        <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "4px" }}>PROPS RECEIVED:</div>
+        <div><strong>title:</strong> {title}</div>
+        <div><strong>urlName:</strong> {urlName}</div>
+        <div><strong>showStatus:</strong> {String(showStatus)}</div>
+        <div><strong>pageSize:</strong> {pageSize}</div>
+        <div style={{ marginTop: "8px", color: "#64748b", fontSize: "13px" }}>
+          → Will POST to: /api/{urlName}/list with sizePerPage: {pageSize}
+        </div>
+      </div>
+    );
+  }
+  function ShoaibListTemplate({ title, name,message})
+  {
+    return(
+      <div style={{ background: "#f8fafc", padding: "12px", borderRadius: "8px" }}>
+        <div><strong>title:</strong> {title}</div>
+        <div><strong>name:</strong> {name}</div>
+        <div><strong>message:</strong> {message}</div>
+      </div>
+    );
+  }
+
+  function App() {
+    return (      
+    
+      <div>
+        <Card title="Example 1: Basic Props — UserCard">
+          <UserCard name="Shoaib Ejaz" email="shoaib@mail.com" role="ADMIN" />
+          <UserCard name="John Doe" email="john@mail.com" role="CASHIER" />
+        </Card>
+        <Card title="Example Shoaib: Default Props — Shoaib">
+        <ShoaibListTemplate title="Example 1: Basic Props" name="Shoaib Ejaz" message="Hello, Shoaib!" />
+          </Card>
+        <Card title="Example 2: Default Props — StatusBadge">
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <StatusBadge status={true} />
+            <StatusBadge status={false} />
+            <StatusBadge status={true} activeLabel="Online" inactiveLabel="Offline" />
+          </div>
+        </Card>
+
+        <Card title="Example 3: children prop — exactly like your Layout.jsx">
+          <p style={{ color: "#64748b", fontSize: "13px" }}>
+            This paragraph is the "children" of the Card component above. Layout.jsx works the same way —
+            BrandList, Profile etc are "children" passed to Layout.
+          </p>
+        </Card>
+
+        <Card title="Example 4: Function as prop — like onChange in DropdownTemplate">
+          <DeleteButton
+            label="Rack 1"
+            onDelete={() => alert("Delete Rack 1 clicked! In real project this calls API.")}
+          />
+        </Card>
+
+        <Card title="Real Project: How BrandList passes props to ListTemplate">
+          <SimpleListTemplate
+            title="Brand Management"
+            urlName="brand"
+            showStatus={true}
+            pageSize={4}
+          />
+        </Card>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

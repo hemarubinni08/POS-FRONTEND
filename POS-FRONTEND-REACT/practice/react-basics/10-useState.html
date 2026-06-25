@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lesson 10 – useState</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 750px; margin: 40px auto; background: #f8fafc; }
+    .box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 14px; border-radius: 8px; font-size: 13px; }
+    button { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; }
+    input { padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; width: 100%; box-sizing: border-box; }
+    label { font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+<h1>Lesson 10: useState</h1>
+<div class="box">
+  <b>Concept:</b> useState lets a component REMEMBER a value between renders.
+  When the value changes, React automatically re-renders the component to show the new value.
+  <pre>{`const [value, setValue] = useState(initialValue);
+//    ↑ read   ↑ update   ↑ starting value`}</pre>
+  <b>From your project:</b>
+  <pre>{`const [username, setUsername] = useState('');    // Login.jsx
+const [data, setData] = useState([]);           // ListTemplate.jsx
+const [loading, setLoading] = useState(true);  // ListTemplate.jsx
+const [page, setPage] = useState(0);           // ListTemplate.jsx`}</pre>
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+  const { useState } = React;
+
+  // ── EXAMPLE 1: Counter (simplest useState) ────────────────
+  function Counter() {
+    const [count, setCount] = useState(0); // starts at 0
+
+    return (
+      <div className="box">
+        <b>Example 1: Counter</b>
+        <p>Count: <strong style={{ fontSize: "24px" }}>{count}</strong></p>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button onClick={() => setCount(count + 1)} style={{ background: "#22c55e", color: "white" }}>+1</button>
+          <button onClick={() => setCount(count - 1)} style={{ background: "#ef4444", color: "white" }}>-1</button>
+          <button onClick={() => setCount(0)} style={{ background: "#94a3b8", color: "white" }}>Reset</button>
+        </div>
+        <p style={{ color: "#64748b", fontSize: "13px", marginTop: "8px" }}>
+          Every click calls setCount() → React re-renders → shows new value
+        </p>
+      </div>
+    );
+  }
+
+  // ── EXAMPLE 2: Text Input (like Login.jsx) ────────────────
+  function LoginForm() {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+
+    return (
+      <div className="box">
+        <b>Example 2: Controlled Input — exactly like Login.jsx</b>
+        <pre style={{ fontSize: "12px", marginBottom: "12px" }}>{`const [username, setUsername] = useState('');
+
+<input
+  onChange={(e) => setUsername(e.target.value)}
+/>`}</pre>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div>
+            <label>Username</label>
+            <input
+              type="text"
+              placeholder="Enter username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          <div>
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+        </div>
+        <div style={{ marginTop: "12px", background: "#f0fdf4", padding: "10px", borderRadius: "8px", fontSize: "13px" }}>
+          <b>State right now:</b><br />
+          username = "<strong>{username}</strong>"<br />
+          password = "<strong>{password}</strong>"
+        </div>
+      </div>
+    );
+  }
+
+  // ── EXAMPLE 3: Object state (like CommonAddTemplate values) ──
+  function ProductForm() {
+    const [values, setValues] = useState({});
+
+    // Exactly like handleChange in CommonAddTemplate:
+    const handleChange = (key, value) => {
+      setValues(prev => ({ ...prev, [key]: value }));
+    };
+
+    return (
+      <div className="box">
+        <b>Example 3: Object state — like CommonAddTemplate's "values"</b>
+        <pre style={{ fontSize: "12px" }}>{`const [values, setValues] = useState({});
+
+const handleChange = (key, value) => {
+  setValues(prev => ({ ...prev, [key]: value }));
+  // prev = old values, [key]: value = update one field
+};`}</pre>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div>
+            <label>Product Name</label>
+            <input placeholder="e.g. iPhone 15" onChange={e => handleChange("productName", e.target.value)} />
+          </div>
+          <div>
+            <label>Brand</label>
+            <input placeholder="e.g. Apple" onChange={e => handleChange("brand", e.target.value)} />
+          </div>
+        </div>
+        <div style={{ marginTop: "12px", background: "#f0fdf4", padding: "10px", borderRadius: "8px", fontSize: "13px" }}>
+          <b>values object right now:</b><br />
+          <pre style={{ margin: 0, background: "transparent", color: "#166534", padding: 0, fontSize: "13px" }}>
+            {JSON.stringify(values, null, 2)}
+          </pre>
+        </div>
+      </div>
+    );
+  }
+
+  // ── EXAMPLE 4: Boolean state (like loading in ListTemplate) ──
+  function LoadingDemo() {
+    const [loading, setLoading] = useState(false);
+    const [data, setData] = useState([]);
+
+    const fetchData = () => {
+      setLoading(true);
+      setData([]);
+      // Simulate API call with 2 second delay
+      setTimeout(() => {
+        setData([
+          { id: 1, identifier: "Rack A" },
+          { id: 2, identifier: "Rack B" },
+        ]);
+        setLoading(false);
+      }, 2000);
+    };
+
+    return (
+      <div className="box">
+        <b>Example 4: Boolean state — like loading in ListTemplate</b>
+        <pre style={{ fontSize: "12px" }}>{`const [loading, setLoading] = useState(false);
+
+// In fetchData:
+setLoading(true);   // show spinner
+// ... API call ...
+setLoading(false);  // hide spinner`}</pre>
+        <button onClick={fetchData} style={{ background: "#3b82f6", color: "white", marginBottom: "12px" }}>
+          Simulate API Call (2 sec)
+        </button>
+        {loading && <div style={{ color: "#3b82f6" }}>⏳ Loading records...</div>}
+        {!loading && data.length === 0 && <div style={{ color: "#64748b" }}>No records yet. Click the button.</div>}
+        {!loading && data.length > 0 && (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+            <thead><tr style={{ background: "#1e293b", color: "white" }}>
+              <th style={{ padding: "8px", textAlign: "left" }}>ID</th>
+              <th style={{ padding: "8px", textAlign: "left" }}>Identifier</th>
+            </tr></thead>
+            <tbody>
+              {data.map(item => (
+                <tr key={item.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                  <td style={{ padding: "8px" }}>{item.id}</td>
+                  <td style={{ padding: "8px" }}>{item.identifier}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    );
+  }
+
+  function App() {
+    return (
+      <div>
+        <Counter />
+        <LoginForm />
+        <ProductForm />
+        <LoadingDemo />
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

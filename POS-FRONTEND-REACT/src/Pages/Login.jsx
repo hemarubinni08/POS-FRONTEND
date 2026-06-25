@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import Shoaib from "../Component/demo/component";
+import Srujan from "../Component/demo/srujan";
 function Login(){
     const navigate = useNavigate();
     const [username, setUsername] = useState('');
@@ -28,7 +29,7 @@ function Login(){
     };
    return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
-      <Shoaib />
+      <Shoaib username="ShoaibEjaz" title="Welcome to Shoaib's Component!" name="Shoaib Ejaz" message="This is a message passed as a prop." />
   <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
     <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl shadow-slate-200">
       <div className="mb-8 text-center">
@@ -61,7 +62,8 @@ function Login(){
           className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
         >
           Login
-        </button>
+             </button>
+             <Srujan username="Srujannnn" age={25} />
       </div>
     </div>
   </div>

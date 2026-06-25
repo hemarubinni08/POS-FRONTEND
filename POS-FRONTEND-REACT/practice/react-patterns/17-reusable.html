@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lesson 17 – Reusable Components</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 40px auto; background: #f8fafc; }
+    .box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 14px; border-radius: 8px; font-size: 12px; }
+    input, select { padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; width: 100%; box-sizing: border-box; margin-top: 4px; }
+    label { font-size: 13px; font-weight: 600; color: #475569; display: block; }
+    button { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+  </style>
+</head>
+<body>
+<h1>Lesson 17: Reusable Components</h1>
+<div class="box">
+  <b>Concept:</b> Instead of copy-pasting the same form for Brand, Shelf, Model...
+  your project uses ONE <code>CommonAddTemplate</code> that is configured via props.
+  <pre>{`// WITHOUT reusable component — you'd repeat this for Brand, Shelf, Model, Category...
+function BrandAdd() { /* form code */ }
+function ShelfAdd() { /* same form code */ }
+function ModelAdd() { /* same form code again */ }
+
+// WITH reusable component — write once, use everywhere:
+function BrandAdd() {
+  const extraFields = [{ key: "status", type: "select", options: [...] }];
+  return <CommonAddTemplate title="Brand" apiPath="brand" extraFields={extraFields} />;
+}
+function ShelfAdd() {
+  const extraFields = [{ key: "status", type: "select", options: [...] }];
+  return <CommonAddTemplate title="Shelf" apiPath="shelf" extraFields={extraFields} />;
+}
+// CommonAddTemplate handles ALL the form logic — just configure it with props`}</pre>
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+  const { useState } = React;
+
+  // ── This is a simplified version of your CommonAddTemplate ──
+  function CommonAddTemplate({ title, apiPath, extraFields = [], showDescription = true, onSuccessPath }) {
+    const [identifier, setIdentifier] = useState("");
+    const [description, setDescription] = useState("");
+    const [values, setValues] = useState({});
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+
+    // Exactly like your handleChange:
+    const handleChange = (key, value) => {
+      setValues(prev => ({ ...prev, [key]: value }));
+    };
+
+    // Exactly like your buildPayload:
+    const buildPayload = () => {
+      const payload = {
+        identifier,
+        ...(showDescription ? { description } : {}),
+        ...values,
+      };
+
+      extraFields.forEach(field => {
+        if (field.asArray) {
+          payload[field.key] = Array.isArray(payload[field.key])
+            ? payload[field.key]
+            : payload[field.key] ? [payload[field.key]] : [];
+        }
+        if (field.valueType === "boolean") {
+          payload[field.key] = payload[field.key] === true || payload[field.key] === "true";
+        }
+      });
+
+      return payload;
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setError(""); setLoading(true);
+      try {
+        const payload = buildPayload();
+        // In real project: await axiosInstance.post(`/${apiPath}/add`, payload);
+        await new Promise(r => setTimeout(r, 1000)); // simulate API
+        console.log(`POST /${apiPath}/add →`, payload);
+        setSubmitted(true);
+      } catch (err) {
+        setError("Failed to save. Check console.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const renderField = (field) => {
+      if (field.type === "select") {
+        return (
+          <div key={field.key} style={{ display: "flex", flexDirection: "column" }}>
+            <label>{field.label}</label>
+            <select value={values[field.key] || ""} onChange={e => handleChange(field.key, e.target.value)}>
+              <option value="">Select {field.label}</option>
+              {(field.options || []).map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        );
+      }
+      return (
+        <div key={field.key} style={{ display: "flex", flexDirection: "column" }}>
+          <label>{field.label}</label>
+          <input type={field.type || "text"} placeholder={`Enter ${field.label}`}
+            value={values[field.key] || ""} onChange={e => handleChange(field.key, e.target.value)} />
+        </div>
+      );
+    };
+
+    if (submitted) {
+      return (
+        <div className="box">
+          <div style={{ color: "#166534", background: "#f0fdf4", padding: "12px", borderRadius: "8px" }}>
+            ✅ {title} added! Payload sent to <b>/{apiPath}/add</b>:<br />
+            <pre style={{ margin: "8px 0 0", fontSize: "12px" }}>{JSON.stringify(buildPayload(), null, 2)}</pre>
+          </div>
+          <button onClick={() => { setSubmitted(false); setIdentifier(""); setDescription(""); setValues({}); }}
+            style={{ marginTop: "10px", background: "#6366f1", color: "white" }}>Add Another</button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="box">
+        <b>Add {title}</b>
+        <form onSubmit={handleSubmit} style={{ marginTop: "12px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          {error && <div style={{ gridColumn: "1/-1", color: "#dc2626", background: "#fef2f2", padding: "10px", borderRadius: "8px" }}>{error}</div>}
+
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <label>Identifier *</label>
+            <input value={identifier} onChange={e => setIdentifier(e.target.value)} placeholder="Enter identifier" required />
+          </div>
+
+          {showDescription && (
+            <div style={{ gridColumn: "1/-1", display: "flex", flexDirection: "column" }}>
+              <label>Description</label>
+              <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Enter description" />
+            </div>
+          )}
+
+          {extraFields.map(field => (
+            <div key={field.key}>{renderField(field)}</div>
+          ))}
+
+          <div style={{ gridColumn: "1/-1", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+            <button type="button" style={{ background: "#f1f5f9", color: "#475569" }}>Cancel</button>
+            <button type="submit" disabled={loading} style={{ background: loading ? "#94a3b8" : "#22c55e", color: "white" }}>
+              {loading ? "Saving..." : `Add ${title}`}
+            </button>
+          </div>
+        </form>
+        <div style={{ marginTop: "10px", background: "#f8fafc", padding: "8px", borderRadius: "8px", fontSize: "11px", color: "#64748b" }}>
+          Open F12 Console to see the payload when you submit
+        </div>
+      </div>
+    );
+  }
+
+  // ── Now use CommonAddTemplate for 3 different entities ───
+  // Notice: SAME component, different props → different behavior
+  function App() {
+    const statusField = {
+      key: "status", label: "Status", type: "select", valueType: "boolean",
+      options: [{ label: "Active", value: "true" }, { label: "Inactive", value: "false" }]
+    };
+
+    return (
+      <div>
+        <div style={{ background: "#dbeafe", border: "1px solid #93c5fd", borderRadius: "8px", padding: "12px", marginBottom: "16px", fontSize: "13px" }}>
+          <b>Key insight:</b> The <code>CommonAddTemplate</code> component below is used 3 times with different props.
+          Same code → different forms. This is the power of reusable components.
+        </div>
+
+        {/* Brand — no description */}
+        <CommonAddTemplate
+          title="Brand"
+          apiPath="brand"
+          showDescription={false}
+          extraFields={[statusField]}
+        />
+
+        {/* Category — with supercategory field */}
+        <CommonAddTemplate
+          title="Category"
+          apiPath="category"
+          showDescription={false}
+          extraFields={[
+            {
+              key: "supercategory", label: "Supercategory", type: "select",
+              options: [
+                { label: "Electronics", value: "Electronics" },
+                { label: "Clothing", value: "Clothing" },
+              ]
+            },
+            statusField
+          ]}
+        />
+
+        {/* Product — with description + multiple fields */}
+        <CommonAddTemplate
+          title="Product"
+          apiPath="product"
+          showDescription={true}
+          extraFields={[
+            { key: "productName", label: "Product Name", type: "text" },
+            {
+              key: "brand", label: "Brand", type: "select",
+              options: [{ label: "Apple", value: "Apple" }, { label: "Samsung", value: "Samsung" }]
+            },
+            statusField
+          ]}
+        />
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
