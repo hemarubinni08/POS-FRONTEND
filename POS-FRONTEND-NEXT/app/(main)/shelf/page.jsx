@@ -203,6 +203,7 @@ const ShelfList = () => {
     {
       name: "identifier",
       label: "Identifier",
+      required: true,
     },
   ];
 

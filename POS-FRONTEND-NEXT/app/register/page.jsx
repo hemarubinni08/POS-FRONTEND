@@ -149,7 +149,7 @@ function Register() {
           maxLength={10}
           onChange={(e) => {
             const value =
-              e.target.value.replace(/\D/g, "");
+              e.target.value.replaceAll(/\D/g, "");
             setPhoneNo(value);
           }}
           style={styles.input}
@@ -215,6 +215,23 @@ function Register() {
 
 export default Register;
 
+const circleBase = {
+  position: "absolute",
+  borderRadius: "50%",
+  filter: "blur(30px)",
+};
+
+const inputBase = {
+  padding: "14px",
+  borderRadius: "14px",
+  border: "1px solid #e5e7eb",
+  fontSize: "14px",
+  outline: "none",
+  background: "#fff",
+  color: "#111827",
+  boxSizing: "border-box",
+};
+
 const styles = {
   container: {
     minHeight: "100vh",
@@ -227,30 +244,24 @@ const styles = {
     position: "relative",
     overflow: "hidden",
   },
-
-  bgCircle1: {
-    position: "absolute",
-    width: "350px",
-    height: "350px",
-    borderRadius: "50%",
-    background:
-      "rgba(99,102,241,0.15)",
-    top: "-120px",
-    left: "-100px",
-    filter: "blur(30px)",
-  },
-
+bgCircle1: {
+  ...circleBase,
+  width: "350px",
+  height: "350px",
+  background:
+    "rgba(99,102,241,0.15)",
+  top: "-120px",
+  left: "-100px",
+},
   bgCircle2: {
-    position: "absolute",
-    width: "300px",
-    height: "300px",
-    borderRadius: "50%",
-    background:
-      "rgba(139,92,246,0.15)",
-    bottom: "-100px",
-    right: "-80px",
-    filter: "blur(30px)",
-  },
+  ...circleBase,
+  width: "300px",
+  height: "300px",
+  background:
+    "rgba(139,92,246,0.15)",
+  bottom: "-100px",
+  right: "-80px",
+},
 
   card: {
     width: "100%",
@@ -279,28 +290,14 @@ const styles = {
     textAlign: "center",
   },
 
-  input: {
-    padding: "14px",
-    borderRadius: "14px",
-    border: "1px solid #e5e7eb",
-    fontSize: "14px",
-    outline: "none",
-    background: "#fff",
-    color: "#111827",
-    boxSizing: "border-box",
-  },
+ input: {
+  ...inputBase,
+},
 
   multiSelect: {
-    height: "110px",
-    padding: "14px",
-    borderRadius: "14px",
-    border: "1px solid #e5e7eb",
-    fontSize: "14px",
-    outline: "none",
-    background: "#fff",
-    color: "#111827",
-    boxSizing: "border-box",
-  },
+  ...inputBase,
+  height: "110px",
+},
 
   helperText: {
     color: "#4b5563",

@@ -216,16 +216,19 @@ const PriceList = () => {
         label: p.identifier,
         value: p.identifier,
       })),
+      required: true,
     },
     {
       name: "costPrice",
       label: "Cost Price",
       type: "number",
+       required: true,
     },
     {
       name: "sellingPrice",
       label: "Selling Price",
       type: "number",
+       required: true,
     },
   ];
 

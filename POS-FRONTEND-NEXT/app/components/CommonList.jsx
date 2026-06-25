@@ -15,10 +15,7 @@ const CommonList = ({
   totalPages = 0,
 
    searchTerm = "",
-  setSearchTerm,
-
-  addError="",
-  
+  setSearchTerm,  
  
   // ADD
   onAdd,
@@ -46,23 +43,14 @@ const CommonList = ({
   const [inputValue, setInputValue] = useState(searchTerm || "");
   const [openMenu, setOpenMenu] = useState(null);
   const menuRef = useRef(null);
-
+  const [validationError, setValidationError] = useState("");
+  const [addError, setAddError] = useState("");
+    const [showAddModal, setShowAddModal] = useState(false);
+ 
 useEffect(() => {
   setInputValue(searchTerm || "");
 }, [searchTerm]);
 
-useEffect(() => {
-  const timer = setTimeout(() => {
-    if (
-      setSearchTerm &&
-      inputValue !== searchTerm
-    ) {
-      setSearchTerm(inputValue);
-    }
-  }, 500);
-
-  return () => clearTimeout(timer);
-}, [inputValue, searchTerm, setSearchTerm]);
 useEffect(() => {
   const timer = setTimeout(() => {
     if (
@@ -98,7 +86,20 @@ useEffect(() => {
     );
   };
 }, []);
-   const [showAddModal, setShowAddModal] = useState(false);
+
+useEffect(() => {
+  if (showAddModal) {
+    setValidationError("");
+    setAddError("");
+  }
+}, [showAddModal]);
+
+useEffect(() => {
+  if (editItem) {
+    setValidationError("");
+  }
+}, [editItem]);
+
 const getNestedValue = (obj, path) =>
   path.split(".").reduce(
     (acc, key) => acc?.[key] ?? "",
@@ -122,6 +123,85 @@ const setNestedValue = (obj, path, value) => {
 
   return copy;
 };
+const isEmptyValue = (value) =>
+  value === null ||
+  value === undefined ||
+  value === "" ||
+  (Array.isArray(value) && value.length === 0);
+
+const validateRequired = (field, value) => {
+  if (field.required && isEmptyValue(value)) {
+    return `${field.label} is required`;
+  }
+  return "";
+};
+
+const validateEmail = (field, value) => {
+  if (field.type !== "email" || !value) {
+    return "";
+  }
+  const email = String(value).trim();
+  const hasAt = email.indexOf("@");
+  const hasDot = email.lastIndexOf(".");
+
+  return (
+    hasAt > 0 &&
+    hasDot > hasAt + 1 &&
+    hasDot < email.length - 1
+  )
+    ? ""
+    : "Enter a valid email address";
+};
+
+const validatePhone = (field, value) => {
+  if (field.name !== "phoneno" || !value) {
+    return "";
+  }
+
+  const phoneRegex = /^\d{10}$/;
+
+  return phoneRegex.test(value)
+    ? ""
+    : "Phone number must be exactly 10 digits";
+};
+
+const validatePincode = (field, value) => {
+  const pincodeFields = [
+    "billing.pincode",
+    "shipping.pincode",
+    "pincode",
+  ];
+
+  if (
+    !pincodeFields.includes(field.name) ||
+    !value
+  ) {
+    return "";
+  }
+
+  const pinRegex = /^\d{6}$/;
+
+  return pinRegex.test(value)
+    ? ""
+    : `${field.label} must be exactly 6 digits`;
+};
+const validateField = (field, value) => {
+  return (
+    validateRequired(field, value) ||
+    validateEmail(field, value) ||
+    validatePhone(field, value) ||
+    validatePincode(field, value)
+  );
+};
+const validateFields = (fields, data) =>
+  fields
+    .map((field) =>
+      validateField(
+        field,
+        getNestedValue(data, field.name)
+      )
+    )
+    .find(Boolean) || "";
 const basicAddFields = addFields.filter(
   (field) => !field.section
 );
@@ -150,18 +230,17 @@ const renderField = (field) => {
   return (
     <>
       {/* TEXT / NUMBER */}
-      {(!field.type || field.type === "text" || field.type === "number") && (
+      {(!field.type || ["text", "number", "email", "password", "pincode"].includes(field.type)) && (
         <input
           type={field.type || "text"}
           placeholder={placeholder}
           maxLength={field.maxLength}
-          value={newItem[field.name] || ""}
-          onChange={(e) =>
-            setNewItem({
-              ...newItem,
-              [field.name]: e.target.value,
-            })
-          }
+          value={getNestedValue(newItem, field.name) || ""}
+onChange={(e) =>
+  setNewItem(
+    setNestedValue(newItem, field.name, e.target.value)
+  )
+}
         />
       )}
 
@@ -257,6 +336,8 @@ const renderField = (field) => {
         className="actionBtn"
         onClick={() => {
           setShowAddModal(true);
+          setValidationError("");
+          setAddError("");
           onAdd();
         }}
       >
@@ -391,11 +472,17 @@ const renderField = (field) => {
 
       <h2>Add {title}</h2>
 
-      {addError && (
-        <div className="errorMessage">
-          {addError}
-        </div>
-      )}
+        {validationError && (
+          <div className="errorMessage">
+            {validationError}
+          </div>
+        )}
+
+        {addError && (
+          <div className="errorMessage">
+            {addError}
+          </div>
+        )}
 
       {/* BASIC FIELDS */}
 {basicAddFields.map((field, index) => (
@@ -449,19 +536,40 @@ const renderField = (field) => {
             <div className="modalActions">
 <button
   onClick={async () => {
+
+    const error = validateFields(
+      addFields,
+      newItem
+    );
+
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+
+    setValidationError("");
+
     const success = await handleAdd();
 
     if (success) {
-      setShowAddModal(false);
-    }
+  setShowAddModal(false);
+  setValidationError("");
+  setAddError("");
+}
   }}
 >
   Add
 </button>
  
-              <button onClick={() => setShowAddModal(false)}>
-                Cancel
-              </button>
+              <button
+  onClick={() => {
+    setShowAddModal(false);
+    setValidationError("");
+    setAddError("");
+  }}
+>
+  Cancel
+</button>
             </div>
  
           </div>
@@ -535,6 +643,11 @@ const renderField = (field) => {
     <div className="modal">
 
       <h2>Edit {title}</h2>
+      {validationError && (
+        <div className="errorMessage">
+          {validationError}
+        </div>
+      )}
 
       {editFields.some(field => field.section) ? (
 
@@ -757,13 +870,36 @@ const renderField = (field) => {
 )}
 
       <div className="modalActions">
-        <button onClick={handleUpdate}>
-          Update
-        </button>
+        <button
+  onClick={async () => {
 
-        <button onClick={() => setEditItem(null)}>
-          Cancel
-        </button>
+    const error = validateFields(
+      editFields,
+      editItem
+    );
+
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+
+    setValidationError("");
+
+    await handleUpdate();
+    setValidationError("");
+  }}
+>
+  Update
+</button>
+
+        <button
+  onClick={() => {
+    setEditItem(null);
+    setValidationError("");
+  }}
+>
+  Cancel
+</button>
       </div>
 
     </div>
@@ -790,8 +926,6 @@ CommonList.propTypes = {
 
   searchTerm: PropTypes.string,
   setSearchTerm: PropTypes.func,
-
-  addError: PropTypes.string,
 
   onAdd: PropTypes.func,
   addButtonText: PropTypes.string,

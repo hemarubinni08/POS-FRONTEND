@@ -222,6 +222,7 @@ const CategoryPage = () => {
     {
       name: "identifier",
       label: "Category",
+      required: true,
     },
 
     {

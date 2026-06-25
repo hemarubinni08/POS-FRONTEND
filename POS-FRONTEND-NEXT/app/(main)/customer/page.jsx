@@ -137,9 +137,9 @@ const CustomerPage = () => {
 
   const fields = [
     // ================= BASIC FIELDS =================
-    { name: "identifier", label: "Identifier" },
-    { name: "phoneno", label: "Phone No" },
-    { name: "email", label: "Email" },
+    { name: "identifier", label: "Identifier", required: true },
+    { name: "phoneno", label: "Phone No", required: true },
+    { name: "email", label: "Email", type: "email", required: true },
     { name: "address", label: "Address" },
 
     {
@@ -173,6 +173,7 @@ const CustomerPage = () => {
       name: "billing.pincode",
       label: "Billing Pincode",
       section: "Billing",
+      type: "pincode"
     },
     {
       name: "billing.country",
@@ -200,6 +201,7 @@ const CustomerPage = () => {
       name: "shipping.pincode",
       label: "Shipping Pincode",
       section: "Shipping",
+      type: "pincode"
     },
     {
       name: "shipping.country",

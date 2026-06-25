@@ -201,10 +201,12 @@ const NodePage = () => {
     {
       name: "identifier",
       label: "Identifier",
+      required: true,
     },
     {
       name: "path",
       label: "Path",
+       required: true,
     },
     {
       name: "roles",

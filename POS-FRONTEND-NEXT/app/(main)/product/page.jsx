@@ -363,29 +363,34 @@ const ProductList = () => {
     {
       name: "identifier",
       label: "Identifier",
+      required: true,
     },
     {
       name: "supplierId",
       label: "Supplier ID",
       type: "number",
+       required: true,
     },
     {
       name: "brand",
       label: "Brand",
       type: "select",
       options: brandOptions,
+       required: true,
     },
     {
       name: "unit",
       label: "Unit",
       type: "select",
       options: unitOptions,
+       required: true,
     },
     {
       name: "category",
       label: "Category",
       type: "select",
       options: categoryOptions,
+       required: true,
     },
   ];
 

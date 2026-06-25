@@ -164,16 +164,17 @@ const WarehousePage = () => {
 
   // ================= ADD FIELDS =================
   const addFields = [
-    { name: "identifier", label: "Identifier" },
-    { name: "country", label: "Country" },
+    { name: "identifier", label: "Identifier", required: true,},
+    { name: "country", label: "Country" ,  required: true},
  {
     name: "pincode",
     label: "Pincode",
     type: "text",
     maxLength: 6,
     pattern: /^\d*$/,
-
-  },    { name: "address", label: "Address" },
+     required: true
+  },    
+  { name: "address", label: "Address",  required: true },
   ];
 
   // ================= EDIT FIELDS =================

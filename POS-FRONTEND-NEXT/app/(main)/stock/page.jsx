@@ -276,6 +276,7 @@ const StockPage = () => {
     {
       name: "identifier",
       label: "Identifier",
+      required: true,
     },
     {
       name: "productName",
@@ -285,6 +286,7 @@ const StockPage = () => {
         value: p.identifier,
         label: p.identifier,
       })),
+       required: true,
     },
     {
       name: "warehouseName",
@@ -294,11 +296,13 @@ const StockPage = () => {
         value: w.identifier,
         label: w.identifier,
       })),
+       required: true,
     },
     {
       name: "noOfProducts",
       label: "No Of Products",
       type: "number",
+       required: true,
     },
   ];
 

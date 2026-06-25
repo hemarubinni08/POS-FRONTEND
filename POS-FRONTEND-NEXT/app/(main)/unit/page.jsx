@@ -7,7 +7,6 @@ import {
   addItem,
   updateItem,
   deleteItem,
-  toggleItem,
 } from "@/services/api";
 
 const UnitPage = () => {
@@ -145,30 +144,6 @@ const UnitPage = () => {
     }
   };
 
-  // TOGGLE STATUS
-  const handleToggleStatus = async (
-    identifier
-  ) => {
-    setUnits((prev) =>
-      prev.map((u) =>
-        u.identifier === identifier
-          ? {
-              ...u,
-              status: !u.status,
-            }
-          : u
-      )
-    );
-
-    try {
-      await toggleItem("unit", identifier);
-    } catch (err) {
-      console.error(err);
-      alert("Toggle failed");
-      fetchUnits();
-    }
-  };
-
   // TABLE COLUMNS
   const columns = [
     {
@@ -183,23 +158,6 @@ const UnitPage = () => {
     {
       label: "Description",
       key: "description",
-    },
-    {
-      label: "Status",
-      render: (u) => (
-        <label className="switch" aria-label={`Toggle status for ${u.identifier}`}>
-          <input
-            type="checkbox"
-            checked={u.status}
-            onChange={() =>
-              handleToggleStatus(
-                u.identifier
-              )
-            }
-          />
-          <span className="slider"></span>
-        </label>
-      ),
     },
   ];
 
@@ -226,10 +184,12 @@ const UnitPage = () => {
     {
       name: "identifier",
       label: "Identifier",
+      required: true,
     },
     {
       name: "description",
       label: "Description",
+       required: true,
     },
   ];
 

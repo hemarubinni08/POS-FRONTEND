@@ -17,7 +17,6 @@ import PropTypes from "prop-types";
 const MainLayout = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
-
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -315,11 +314,8 @@ if (loading) {
 );
 
 };
-
 MainLayout.propTypes = {
-
   children: PropTypes.node.isRequired,
-
 };
 
 

@@ -249,6 +249,7 @@ const RackList = () => {
       name: "shelfs",
       label: "Shelves",
       type: "multiselect",
+      required: true,
       options: shelfOptions,
     },
   ];

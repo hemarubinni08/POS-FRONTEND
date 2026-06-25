@@ -4,35 +4,26 @@
   min-height: 100vh;
 }
 
-/* ================= SUMMARY CARDS ================= */
-
-.summaryCards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
+.pageHeader {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #dbe3ea;
 }
 
-.summaryCard {
-  background: #fff;
-  border-radius: 12px;
-  padding: 18px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.summaryCard h4 {
+.pageHeader h1 {
+  margin: 0;
   color: rgb(0, 60, 81);
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.summaryCard p {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
-  color: #222;
 }
 
+.pageHeader p {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 15px;
+}
 /* ================= STATUS BADGES ================= */
 
 .statusBadge {
@@ -240,31 +231,6 @@
 }
 
 /* ================= RESPONSIVE ================= */
-
-@media (max-width: 1000px) {
-  .summaryCards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .orderPage {
-    padding: 16px;
-  }
-
-  .summaryCards {
-    grid-template-columns: 1fr;
-  }
-
-  .orderSummaryModal {
-    width: 95%;
-    padding: 20px;
-  }
-
-  .summaryTable {
-    min-width: 650px;
-  }
-}
 
 .ordersContainer {
   display: flex;

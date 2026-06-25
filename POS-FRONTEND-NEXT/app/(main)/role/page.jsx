@@ -162,10 +162,12 @@ const RolePage = () => {
     {
       name: "identifier",
       label: "Identifier",
+      required: true,
     },
     {
       name: "description",
       label: "Description",
+       required: true,
     },
   ];
  

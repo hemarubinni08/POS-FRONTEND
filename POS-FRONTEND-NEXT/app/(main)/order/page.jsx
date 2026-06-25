@@ -49,49 +49,12 @@ export default function OrderPage() {
   return (
     <div className="orderPage">
       <div className="orderLeft">
-
-        <div className="summaryCards">
-
-          <div className="summaryCard">
-            <h4>Total Orders</h4>
-            <p>{orders.length}</p>
+        <div className="pageHeader">
+          <div>
+            <h1>Order Management</h1>
+            <p>Track and manage customer orders</p>
           </div>
-
-          <div className="summaryCard">
-            <h4>Pending</h4>
-            <p>
-              {
-                orders.filter(
-                  (o) => o.orderStatus === "PENDING"
-                ).length
-              }
-            </p>
-          </div>
-
-          <div className="summaryCard">
-            <h4>Delivered</h4>
-            <p>
-              {
-                orders.filter(
-                  (o) => o.orderStatus === "DELIVERED"
-                ).length
-              }
-            </p>
-          </div>
-
-          <div className="summaryCard">
-            <h4>Cancelled</h4>
-            <p>
-              {
-                orders.filter(
-                  (o) => o.orderStatus === "CANCELLED"
-                ).length
-              }
-            </p>
-          </div>
-
         </div>
-
         <div className="ordersContainer">
 
           {orders.map((order) => (
