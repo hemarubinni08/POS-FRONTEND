@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { FiUsers } from "react-icons/fi";
 import CommonEdit from "@/component/CommonEdit";
-import api from "../api/axios";
 
 const UserEdit = ({ user, onClose }) => {
 
@@ -53,53 +53,29 @@ const UserEdit = ({ user, onClose }) => {
         }
     ];
 
-    const handleSubmit = async (e) => {
-
-        e.preventDefault();
-
-        try {
-
-            const payload = {
-                ...formData,
-                roles: Array.isArray(formData.roles)
-                    ? formData.roles
-                    : [formData.roles]
-            };
-        
-            const response = await api.post(
-                "/api/user/update",
-                payload
-            );
-
-            if (response.data) {
-
-                alert("User Updated Successfully");
-
-                onClose();
-            }
-
-        } catch (err) {
-
-            console.error("User Update Failed:", err);
-
-            alert(
-                err.response?.data?.message ||
-                "Failed to update user"
-            );
-        }
-    };
 
     return (
         <CommonEdit
-            title="Edit User"
+            title="User"
             icon={FiUsers}
             formData={formData}
             setFormData={setFormData}
             fields={userFields}
-            onSubmit={handleSubmit}
+            moduleName="user"
+            onSubmit={() => { onClose(); }}
             submitLabel="Update User"
         />
     );
 };
 
+UserEdit.propTypes = {
+  onClose: PropTypes.func,
+  user: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    name: PropTypes.string,
+    phoneNo: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    username: PropTypes.string,
+    roles: PropTypes.arrayOf(PropTypes.string),
+  }),
+};
 export default UserEdit;

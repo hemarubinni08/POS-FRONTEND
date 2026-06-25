@@ -49,7 +49,6 @@ const Sidebar = ({ isCollapsed = false }) => {
   useEffect(() => {
     fetchNodes();
   }, []);
-
   useEffect(() => {
 
     const refreshSidebar = () => {

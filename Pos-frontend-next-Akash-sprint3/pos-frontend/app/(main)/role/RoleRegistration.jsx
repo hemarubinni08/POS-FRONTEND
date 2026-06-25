@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import PropTypes from "prop-types";
 import { FiShield } from "react-icons/fi";
 import CommonAdd from "@/component/CommonAdd";
-import api from "../api/axios";
 
 const RoleRegistration = ({ onClose }) => {
 
@@ -25,33 +25,6 @@ const RoleRegistration = ({ onClose }) => {
         }
     ];
 
-    const handleSubmit = async () => {
-
-        try {
-
-            const response = await api.post(
-                "/api/role/add",
-                formData
-            );
-
-            if(response.data.success === false)
-            {
-                alert(response.data.message);
-                return;
-            }
-            alert("Role addedd successfully.");
-            onClose();
-        }
-        catch(err)
-        {
-            console.error(err);
-
-            alert(
-                err.response?.data?.message ||
-                "Failed to add role."
-            );
-        }
-    };
 
     return (
         <CommonAdd
@@ -60,10 +33,13 @@ const RoleRegistration = ({ onClose }) => {
             formData={formData}
             setFormData={setFormData}
             fields={fields}
-            onSubmit={handleSubmit}
+            moduleName="role"
+            onSubmit={() => { onClose(); }}
             submitLabel="Add Role"
         />
     );
 };
-
+RoleRegistration.propTypes = {
+  onClose: PropTypes.func,
+};
 export default RoleRegistration;

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { FiDollarSign } from "react-icons/fi";
 import CommonAdd from "@/component/CommonAdd";
 import PropTypes from "prop-types";
-import api from "../api/axios";
 
 const PriceRegistration = ({ onClose }) => {
 
@@ -19,11 +18,12 @@ const PriceRegistration = ({ onClose }) => {
             key: "identifier",
             label: "Product",
             type: "search",
-            api: "/api/product/list"
+            api: "/api/product/list",
+            filterFunction: (item) => item.status === true
         },
         {
             key: "costPrice",
-            label: "Cost Price",
+            label: "MRP",
             type: "number"
         },
         {
@@ -33,40 +33,6 @@ const PriceRegistration = ({ onClose }) => {
         }
     ];
 
-    const handleSubmit = async () => {
-
-        try {
-
-            const payload = {
-                ...formData,
-                costPrice: Number(formData.costPrice),
-                sellingPrice: Number(formData.sellingPrice)
-            };
-
-            const response = await api.post(
-                "/api/price/add",
-                payload
-            );
-
-            if (response.data.success === false) {
-
-                alert(response.data.message);
-                return;
-            }
-            alert("Price registration successful.");
-            onClose();
-        }
-        catch (err) {
-
-            console.error(err);
-
-            alert(
-                err.response?.data?.message ||
-                "Failed to add price."
-            );
-        }
-    };
-
     return (
         <CommonAdd
             title="Add Price"
@@ -74,7 +40,8 @@ const PriceRegistration = ({ onClose }) => {
             formData={formData}
             setFormData={setFormData}
             fields={fields}
-            onSubmit={handleSubmit}
+            moduleName="price"
+            onSubmit={() => { onClose(); }}
             submitLabel="Add Price"
         />
     );

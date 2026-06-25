@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { FiEdit } from "react-icons/fi";
 import PropTypes from "prop-types";
 import CommonEdit from "@/component/CommonEdit";
-import api from "../api/axios";
-
 const NodeEdit = ({ node, onClose }) => {
 
     const [formData, setFormData] = useState({
@@ -48,55 +46,20 @@ const NodeEdit = ({ node, onClose }) => {
         }
     ];
 
-    const handleSubmit = async () => {
-
-        try {
-
-            const payload = {
-                ...formData,
-                roles: Array.isArray(formData.roles)
-                    ? formData.roles
-                    : [formData.roles]
-            };
-
-            const response = await api.post(
-                "/api/node/update",
-                payload
-            );
-
-            if(response.data)
-            {
-                alert("Node updated successfully");
-
-                globalThis.dispatchEvent(
-                    new Event("refreshSidebar")
-                );
-
-                onClose();
-            }
-
-        }
-        catch(err)
-        {
-            console.error(err);
-
-            alert(
-                err.response?.data?.message ||
-                "Failed to update node."
-            );
-        }
-    };
-
     return (
-        <CommonEdit
-            title="Edit Node"
-            icon={FiEdit}
-            formData={formData}
-            setFormData={setFormData}
-            fields={fields}
-            onSubmit={handleSubmit}
-            submitLabel="Update Node"
-        />
+      <CommonEdit
+        title="Edit Node"
+        icon={FiEdit}
+        formData={formData}
+        setFormData={setFormData}
+        fields={fields}
+        moduleName="node"
+        onSubmit={() => {
+          globalThis.dispatchEvent(new Event("refreshSidebar"));
+          onClose();
+        }}
+        submitLabel="Update Node"
+      />
     );
 };
 NodeEdit.propTypes = {

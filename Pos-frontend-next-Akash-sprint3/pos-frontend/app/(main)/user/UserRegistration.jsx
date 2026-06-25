@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import PropTypes from "prop-types";
 import { FiUserPlus } from "react-icons/fi";
 import CommonAdd from "@/component/CommonAdd";
-import api from "../api/axios";
 
 const UserRegistration = ({ onClose }) => {
 
@@ -44,53 +44,21 @@ const UserRegistration = ({ onClose }) => {
         }
     ];
 
-    const handleSubmit = async (e) => {
-
-        e.preventDefault();
-
-        try {
-
-            const payload = {
-                ...formData,
-                roles: Array.isArray(formData.roles)
-                    ? formData.roles
-                    : [formData.roles]
-            };
-
-            const response = await api.post(
-                "/api/user/add",
-                payload
-            );
-
-            if (response.data) {
-
-                alert("User Added Successfully");
-
-                onClose();
-            }
-
-        } catch (err) {
-
-            console.error("User Creation Failed:", err);
-
-            alert(
-                err.response?.data?.message ||
-                "Failed to create user"
-            );
-        }
-    };
 
     return (
         <CommonAdd
-            title="Add User"
+            title="User"
             icon={FiUserPlus}
             formData={formData}
             setFormData={setFormData}
             fields={userFields}
-            onSubmit={handleSubmit}
+            moduleName="user"
+            onSubmit={() => { onClose(); }}
             submitLabel="Create User"
         />
     );
 };
-
+UserRegistration.propTypes = {
+  onClose: PropTypes.func,
+};
 export default UserRegistration;

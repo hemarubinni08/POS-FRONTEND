@@ -14,6 +14,7 @@ import {
   FiCreditCard,
   FiArchive,
   FiUserCheck,
+  FiShoppingCart,
 } from 'react-icons/fi';
 
 /**
@@ -24,7 +25,7 @@ import {
 export const getIconForNode = (identifier) => {
   const iconMap = {
     // System & Config
-    'Node': FiLayers,
+    'Node': FiGrid,
     'Dashboard': FiHome,
     
     // User Management
@@ -34,19 +35,20 @@ export const getIconForNode = (identifier) => {
     
     // Inventory
     'Stock': FiPackage,
-    'Product': FiBox,
+    'Product': FiLayers,
     'Warehouse': FiTrello,
     'Shelfs': FiColumns,
     'Rack': FiArchive,
     
     // Product Attributes
-    'Category': FiGrid,
+    'Category': FiTag,
     'Model': FiTag,
     'Brand': FiTag,
     'Unit': FiCreditCard,
     
     // Pricing
     'Price': FiDollarSign,
+    'Cart': FiShoppingCart,
   };
 
   // Return the mapped icon or default to FiPackage

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { FiEdit } from "react-icons/fi";
 import CommonEdit from "@/component/CommonEdit";
-import api from "../api/axios";
 
 const RoleEdit = ({ role, onClose }) => {
 
@@ -38,34 +38,6 @@ const RoleEdit = ({ role, onClose }) => {
         }
     ];
 
-    const handleSubmit = async () => {
-
-        try {
-
-            const response = await api.post(
-                "/api/role/update",
-                formData
-            );
-
-            if(response.data)
-            {
-                alert("Role updated successfully.");
-
-                onClose();
-            }
-
-        }
-        catch(err)
-        {
-            console.error(err);
-
-            alert(
-                err.response?.data?.message ||
-                "Failed to update role."
-            );
-        }
-    };
-
     return (
         <CommonEdit
             title="Edit Role"
@@ -73,10 +45,17 @@ const RoleEdit = ({ role, onClose }) => {
             formData={formData}
             setFormData={setFormData}
             fields={fields}
-            onSubmit={handleSubmit}
+            moduleName="role"
+            onSubmit={() => {onClose();}}
             submitLabel="Update Role"
         />
     );
 };
-
+RoleEdit.propTypes = {
+  onClose: PropTypes.func,
+  role: PropTypes.shape({
+    identifier: PropTypes.string,
+    description: PropTypes.string,
+  }),
+};
 export default RoleEdit;

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { FiLayers } from "react-icons/fi";
-import api from "../api/axios";
 import PropTypes from "prop-types";
 import CommonEdit from "@/component/CommonEdit";
 const ProductEdit = ({ product, onClose }) => {
@@ -20,25 +19,6 @@ const ProductEdit = ({ product, onClose }) => {
             setFormData(product);
         }
     }, [product]);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        try {
-            const response = await api.post(
-                "/api/product/update",
-                formData
-            );
-
-            if (response.data) {
-                alert("Product Updated Successfully");
-                onClose();
-            }
-        } catch (err) {
-            console.error("Update failed:", err);
-            alert("Error updating product");
-        }
-    };
 
     const productFields = [
         {
@@ -73,7 +53,8 @@ const ProductEdit = ({ product, onClose }) => {
             formData={formData}
             setFormData={setFormData}
             fields={productFields}
-            onSubmit={handleSubmit}
+            moduleName="product"
+            onSubmit={() => { onClose(); }}
             submitLabel="Update Product"
         />
     );

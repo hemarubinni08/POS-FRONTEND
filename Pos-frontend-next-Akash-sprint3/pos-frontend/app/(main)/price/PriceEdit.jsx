@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { FiEdit } from "react-icons/fi";
 import CommonEdit from "@/component/CommonEdit";
-import api from "../api/axios";
 import PropTypes from "prop-types";
 
 const PriceEdit = ({ price, onClose }) => {
@@ -46,34 +45,6 @@ const PriceEdit = ({ price, onClose }) => {
         }
     ];
 
-    const handleSubmit = async () => {
-
-        try {
-
-            const response = await api.post(
-                "/api/price/update",
-                formData
-            );
-
-            if (response.data) {
-
-                alert("Price updated successfully.");
-
-                onClose();
-            }
-
-        }
-        catch (err) {
-
-            console.error(err);
-
-            alert(
-                err.response?.data?.message ||
-                "Failed to update price."
-            );
-        }
-    };
-
     return (
         <CommonEdit
             title="Edit Price"
@@ -81,7 +52,8 @@ const PriceEdit = ({ price, onClose }) => {
             formData={formData}
             setFormData={setFormData}
             fields={fields}
-            onSubmit={handleSubmit}
+            moduleName="price"
+            onSubmit={() => { onClose(); }}
             submitLabel="Update Price"
         />
     );
