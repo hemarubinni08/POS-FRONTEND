@@ -15,7 +15,7 @@ const MainLayout = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get("http://localhost:8080/api/node/list", {
+      const res = await axios.get("http://localhost:8080/api/node/roles", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
