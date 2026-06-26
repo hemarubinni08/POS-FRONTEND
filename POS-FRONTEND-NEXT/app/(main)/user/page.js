@@ -183,18 +183,23 @@ const UserList = () => {
       label: "👁 View",
       onClick: (row) => setViewUser(row),
     },
-    {
+   {
   label: "✏️ Edit",
 
-  onClick: (row) =>
+  onClick: (row) => {
+    let userRoles = [];
+
+    if (Array.isArray(row.roles)) {
+      userRoles = row.roles;
+    } else if (row.roles) {
+      userRoles = row.roles.split(",");
+    }
+
     setEditUser({
       ...row,
-      roles: Array.isArray(row.roles)
-        ? row.roles
-        : row.roles
-        ? row.roles.split(",")
-        : [],
-    }),
+      roles: userRoles,
+    });
+  },
 },
 
     {
