@@ -7,6 +7,7 @@ import {
   listItems,
   deleteItem,
   updateItem,
+  fetchRoles,
 } from "@/services/api";
 
 const UserList = () => {
@@ -26,6 +27,7 @@ const UserList = () => {
     useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewUser, setViewUser] = useState(null);
+  const [roles, setRoles] = useState([]);
   const sizePerPage = 5;
 
   const [editUser, setEditUser] =
@@ -82,9 +84,20 @@ const UserList = () => {
     }
   };
 
+  const loadRoles = async () => {
+  try {
+    const response = await fetchRoles();
+    console.log(response);
+    setRoles(response || []);
+  } catch (err) {
+    console.error("Failed to load roles", err);
+  }
+};
+
   useEffect(() => {
-    fetchUsers();
-  }, [page, searchTerm]);
+  fetchUsers();
+  loadRoles();
+}, [page, searchTerm]);
 
   const handleDelete = async (
     username
@@ -134,29 +147,6 @@ const UserList = () => {
     }
   };
 
-  const renderRolesInput = (editItem, setEditItem) => (
-    <input
-      type="text"
-      value={(
-        editItem.roles || []
-      ).join(", ")}
-      placeholder="Roles"
-
-      onChange={(e) =>
-        setEditItem({
-          ...editItem,
-
-          roles:
-            e.target.value
-              .split(",")
-              .map((r) =>
-                r.trim()
-              ),
-        })
-      }
-    />
-  );
-
   const columns = [
     {
       label: "Sl No",
@@ -194,11 +184,18 @@ const UserList = () => {
       onClick: (row) => setViewUser(row),
     },
     {
-      label: "✏️ Edit",
+  label: "✏️ Edit",
 
-      onClick: (row) =>
-        setEditUser(row),
-    },
+  onClick: (row) =>
+    setEditUser({
+      ...row,
+      roles: Array.isArray(row.roles)
+        ? row.roles
+        : row.roles
+        ? row.roles.split(",")
+        : [],
+    }),
+},
 
     {
       label: "🗑 Delete",
@@ -228,10 +225,15 @@ const UserList = () => {
     },
 
     {
-      name: "roles",
-      label: "Roles",
-      customRender: renderRolesInput,
-    },
+  name: "roles",
+  label: "Roles",
+  type: "select",
+  multiple: true,
+  options: roles.map((role) => ({
+    value: role.identifier,
+    label: role.identifier,
+  })),
+},
   ];
 
   return (

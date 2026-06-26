@@ -139,11 +139,7 @@ const CommonList = ({
         <select
           key={field.name}
           multiple={field.multiple}
-          value={
-            field.multiple
-              ? item?.[field.name] || []
-              : item?.[field.name] || ""
-          }
+          value={field.multiple ? item?.[field.name] || [] : item?.[field.name] || ""}
           onChange={(e) => {
             const values = Array.from(
               e.target.selectedOptions,
@@ -152,12 +148,11 @@ const CommonList = ({
 
             setItem({
               ...item,
-              [field.name]: field.multiple
-                ? values
-                : e.target.value,
+              [field.name]: field.multiple ? values : e.target.value,
             });
           }}
-          className="w-full mb-3 p-3 rounded-lg border border-slate-300 text-slate-700"
+          className="w-full mb-3 p-3 rounded-lg border border-slate-300"
+          style={field.multiple ? { height: "120px" } : {}}
         >
           {!field.multiple && (
             <option value="">
@@ -165,11 +160,14 @@ const CommonList = ({
             </option>
           )}
 
-          {(field.options || []).map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
+          {(field.options || []).map((option, index) => (
+  <option
+    key={option.id ?? `${option.value}-${index}`}
+    value={option.value}
+  >
+    {option.label}
+  </option>
+))}
         </select>
       );
     }
@@ -187,8 +185,8 @@ const CommonList = ({
           })
         }
         className={`w-full mb-3 p-3 rounded-lg border text-slate-900 ${field.disabled
-            ? "bg-slate-100 cursor-not-allowed"
-            : "border-slate-300"
+          ? "bg-slate-100 cursor-not-allowed"
+          : "border-slate-300"
           }`}
       />
     );
@@ -692,8 +690,8 @@ const CommonList = ({
                         })
                       }
                       className={`w-full mb-3 p-3 rounded-lg border text-slate-900 ${f.disabled
-                          ? "bg-slate-100 cursor-not-allowed"
-                          : "border-slate-300"
+                        ? "bg-slate-100 cursor-not-allowed"
+                        : "border-slate-300"
                         }`}
                     />
                   )

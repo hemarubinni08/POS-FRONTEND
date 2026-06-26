@@ -166,7 +166,7 @@ export const updateUser = async (userData) => {
 };
 
 export const fetchRoles = async () => {
-  const response = await api.get("/api/role/all");
+  const response = await api.get("/api/role/list");
   return response.data;
 };
 
