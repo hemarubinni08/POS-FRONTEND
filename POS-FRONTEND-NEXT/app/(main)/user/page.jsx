@@ -6,10 +6,10 @@ import {
   listItems,
   deleteItem,
   updateItem,
+  getListItems,
 } from "@/services/api";
 
 // ================= OUTSIDE COMPONENT (Sonar fix) =================
-
 const getColumns = (page, sizePerPage) => [
   {
     label: "S.No",
@@ -39,7 +39,7 @@ const getActions = (setEditUser, handleDelete) => [
   },
 ];
 
-const getEditFields = (setEditItem) => [
+const getEditFields = (roles) => [
   {
     name: "username",
     label: "Username",
@@ -53,22 +53,15 @@ const getEditFields = (setEditItem) => [
     name: "phoneNo",
     label: "Phone Number",
   },
-  {
-    name: "roles",
-    label: "Roles",
-    customRender: (editItem, setEditItem) => (
-      <input
-        type="text"
-        value={(editItem.roles || []).join(", ")}
-        onChange={(e) =>
-          setEditItem({
-            ...editItem,
-            roles: e.target.value.split(",").map((r) => r.trim()),
-          })
-        }
-      />
-    ),
-  },
+{
+  name: "roles",
+  label: "Roles",
+  type: "multiselect",
+  options: roles.map((role) => ({
+    value: role.identifier,
+    label: role.identifier,
+  })),
+},
 ];
 
 // ================= COMPONENT =================
@@ -122,9 +115,24 @@ const UserList = () => {
     }
   }, [page, searchTerm]);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+const [roles, setRoles] = useState([]);
+
+useEffect(() => {
+  fetchUsers();
+}, [fetchUsers]);
+
+useEffect(() => {
+  const fetchRoles = async () => {
+    try {
+      const response = await getListItems("role");
+      setRoles(response || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchRoles();
+}, []);
 
   // ================= DELETE =================
   const handleDelete = useCallback(async (username) => {
@@ -167,9 +175,9 @@ const UserList = () => {
   );
 
   const editFields = useMemo(
-    () => getEditFields(setEditUser),
-    []
-  );
+  () => getEditFields(roles),
+  [roles]
+);
 
   // ================= RENDER =================
   return (
