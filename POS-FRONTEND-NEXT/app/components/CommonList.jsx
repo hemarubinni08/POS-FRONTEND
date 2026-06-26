@@ -701,6 +701,7 @@ const renderSelectField = (
     type={field.type || "text"}
     placeholder={field.label}
     maxLength={field.maxLength}
+    disabled={field.disabled}
     value={
       getNestedValue(editItem, field.name) || ""
     }
@@ -838,6 +839,7 @@ const renderSelectField = (
       <input
         type={field.type || "text"}
         placeholder={field.label}
+        disabled={field.disabled}
         value={
           getNestedValue(editItem, field.name) || ""
         }
