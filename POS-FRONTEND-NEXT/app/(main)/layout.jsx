@@ -343,7 +343,6 @@ const styles = {
     display: "flex",
 
     minHeight: "100vh",
-
     background: "#f8fafc",
 
     fontFamily: "Inter, sans-serif",
@@ -365,6 +364,7 @@ const styles = {
     background:
 
       "linear-gradient(180deg, #111827, #1f2937)",
+
 
 
 

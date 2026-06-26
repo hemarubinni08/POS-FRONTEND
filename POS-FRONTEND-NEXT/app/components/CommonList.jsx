@@ -291,6 +291,41 @@ onChange={(e) =>
     </>
   );
 };
+
+const renderSelectField = (
+  field,
+  item,
+  setItem
+) => (
+  <select
+    value={
+      getNestedValue(item, field.name) || ""
+    }
+    onChange={(e) =>
+      setItem(
+        setNestedValue(
+          item,
+          field.name,
+          e.target.value
+        )
+      )
+    }
+  >
+    <option value="">
+      {field.label}
+    </option>
+
+    {field.options?.map((opt) => (
+      <option
+        key={opt.value}
+        value={opt.value}
+      >
+        {opt.label}
+      </option>
+    ))}
+  </select>
+);
+
   return (
     
     <div className="section">
@@ -656,33 +691,11 @@ onChange={(e) =>
           {basicEditFields.map((field, index) => (
             <div key={field.name || index}>
 {field.type === "select" ? (
-  <select
-    value={
-      getNestedValue(editItem, field.name) || ""
-    }
-    onChange={(e) =>
-      setEditItem(
-        setNestedValue(
-          editItem,
-          field.name,
-          e.target.value
-        )
-      )
-    }
-  >
-    <option value="">
-      {field.label}
-    </option>
-
-    {field.options?.map((opt) => (
-      <option
-        key={opt.value}
-        value={opt.value}
-      >
-        {opt.label}
-      </option>
-    ))}
-  </select>
+  renderSelectField(
+    field,
+    editItem,
+    setEditItem
+  )
 ) : (
   <input
     type={field.type || "text"}
@@ -814,35 +827,12 @@ onChange={(e) =>
       </select>
     )}
 
-    {field.type === "select" && (
-      <select
-        value={
-          getNestedValue(editItem, field.name) || ""
-        }
-        onChange={(e) =>
-          setEditItem(
-            setNestedValue(
-              editItem,
-              field.name,
-              e.target.value
-            )
-          )
-        }
-      >
-        <option value="">
-          {field.label}
-        </option>
-
-        {field.options?.map((opt) => (
-          <option
-            key={opt.value}
-            value={opt.value}
-          >
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    )}
+    {field.type === "select" &&
+  renderSelectField(
+    field,
+    editItem,
+    setEditItem
+  )}
 
     {field.type !== "multiselect" && field.type !== "select" && (
       <input

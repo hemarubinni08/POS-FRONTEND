@@ -57,7 +57,7 @@ const Dashboard1 = () => {
       <div style={styles.topbar}>
         <div>
           <h1 style={styles.pageTitle}>Dashboard</h1>
-          <p style={styles.pageSubtitle}>Welcome back</p>
+          <p style={styles.pageSubtitle}>Welcome</p>
         </div>
 
         {/* PROFILE */}

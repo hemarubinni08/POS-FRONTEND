@@ -4,6 +4,12 @@
   min-height: 100vh;
 }
 
+.orderDate {
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
 .pageHeader {
   background: white;
   border-radius: 16px;
@@ -250,6 +256,13 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 20px;
+}
+
+.orderHeader > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .orderHeader h3 {
@@ -262,12 +275,23 @@
 }
 
 .orderRight {
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
-.orderRight h2 {
-  margin-top: 10px;
+.rightRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.price {
+  margin: 0;
   color: rgb(0, 60, 81);
+  font-size: 20px;
+  font-weight: 700;
 }
 
 .orderDetails {

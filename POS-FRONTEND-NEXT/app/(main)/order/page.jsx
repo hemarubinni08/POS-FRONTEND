@@ -73,23 +73,24 @@ export default function OrderPage() {
                 <div>
                   <h3>{order.identifier}</h3>
                   <p>{order.customerId}</p>
+                 
                 </div>
 
                 <div className="orderRight">
 
-                  <span>{order.orderDate}</span>
-
-                  <span
-                    className={`statusBadge ${order.orderStatus?.toLowerCase()}`}
-                  >
-                    {order.orderStatus}
+                <div className="rightRow">
+                  <span className="orderDate">
+                    {new Date(order.createdAt).toLocaleDateString()}
                   </span>
 
-                  <h2>
-                    ₹{order.totalPrice}
-                  </h2>
-
+                  <span className={`statusBadge ${order.orderStatus?.toLowerCase()}`}>
+                    {order.orderStatus}
+                  </span>
                 </div>
+
+                <h2 className="price">₹{order.totalPrice}</h2>
+
+              </div>
 
               </div>
 
