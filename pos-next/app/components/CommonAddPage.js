@@ -21,18 +21,31 @@ export default function CommonAddPage({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // ✅ ✅ ✅ FIXED HANDLE CHANGE (IMPORTANT)
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     let parsedValue = value;
-
     if (value === "true") parsedValue = true;
     if (value === "false") parsedValue = false;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: parsedValue,
-    }));
+    const keys = name.split(".");
+
+    setFormData((prev) => {
+      const updated = { ...prev };
+      let temp = updated;
+
+      keys.forEach((key, index) => {
+        if (index === keys.length - 1) {
+          temp[key] = parsedValue;
+        } else {
+          if (!temp[key]) temp[key] = {}; // ✅ create nested object
+          temp = temp[key];
+        }
+      });
+
+      return updated;
+    });
 
     setErrors((prev) => ({
       ...prev,
@@ -44,7 +57,13 @@ export default function CommonAddPage({
     const newErrors = {};
 
     fields.forEach((f) => {
-      const val = formData[f.name];
+      const keys = f.name.split(".");
+      let val = formData;
+
+      // ✅ read nested value correctly
+      keys.forEach((k) => {
+        val = val?.[k];
+      });
 
       if (f.type === "dropdown" && f.multiple) {
         if (!Array.isArray(val) || val.length === 0) {
@@ -53,11 +72,7 @@ export default function CommonAddPage({
         return;
       }
 
-      if (
-        val === "" ||
-        val === null ||
-        val === undefined
-      ) {
+      if (val === "" || val === null || val === undefined) {
         newErrors[f.name] = "Required";
       }
     });
@@ -78,24 +93,20 @@ export default function CommonAddPage({
           ? await submitApi(formData)
           : await api.post(submitApi, formData);
 
-      console.log(" SUCCESS:", response?.data);
+      console.log("✅ SUCCESS:", response?.data);
 
       if (redirectRoute) router.push(redirectRoute);
     } catch (err) {
       console.error(
-        " SUBMIT ERROR:",
+        "❌ SUBMIT ERROR:",
         err.response?.data || err.message
       );
 
-      alert(
-        err.response?.data?.message ||
-          "Failed to save."
-      );
+      alert(err.response?.data?.message || "Failed to save.");
     } finally {
       setLoading(false);
     }
   };
-
 
   const renderInput = (f, val) => (
     <input
@@ -148,10 +159,14 @@ export default function CommonAddPage({
     radio: renderRadio,
   };
 
+  // ✅ FIX nested value read
+  const getValue = (obj, path) => {
+    return path.split(".").reduce((acc, key) => acc?.[key], obj);
+  };
+
   const renderField = (f) => {
     const val =
-      formData[f.name] ??
-      (f.multiple ? [] : ""); 
+      getValue(formData, f.name) ?? (f.multiple ? [] : "");
 
     const renderer = fieldRenderers[f.type];
     return renderer ? renderer(f, val) : null;
@@ -162,7 +177,7 @@ export default function CommonAddPage({
       <div className="flex justify-center py-6">
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border border-blue-50">
 
-          <div className="px-6 py-5 border-b border-blue-50 flex justify-between items-center">
+          <div className="px-6 py-5 border-b flex justify-between items-center">
             <h2 className="text-xl font-bold text-blue-900">
               {title}
             </h2>

@@ -7,19 +7,6 @@ import api from "../services/api";
 import CommonDropDown from "./CommonDropDown";
 import Layout from "./Layout";
 
-
-CommonEditPage.propTypes = {
-  title: PropTypes.string,
-  fetchApi: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
-  updateApi: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
-  redirectRoute: PropTypes.string,
-  fields: PropTypes.array,
-  identifierParam: PropTypes.string,
-  submitButtonText: PropTypes.string,
-  initialData: PropTypes.object,
-  onSuccess: PropTypes.func,
-};
-
 export default function CommonEditPage({
   title = "Edit",
   fetchApi,
@@ -33,14 +20,46 @@ export default function CommonEditPage({
 }) {
   const router = useRouter();
   const params = useParams();
-console.log("PARAM:", params.username);
-
 
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [pageLoading, setPageLoading] = useState(true);
 
+  // ✅ HELPER → Get nested value
+  const getValue = (obj, path) => {
+    return path.split(".").reduce((acc, key) => acc?.[key], obj);
+  };
+
+  // ✅ FIXED handleChange (nested support)
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    const keys = name.split(".");
+
+    setFormData((prev) => {
+      const updated = { ...prev };
+      let temp = updated;
+
+      keys.forEach((key, index) => {
+        if (index === keys.length - 1) {
+          temp[key] = value;
+        } else {
+          if (!temp[key]) temp[key] = {}; // ✅ ensure nested object
+          temp = temp[key];
+        }
+      });
+
+      return updated;
+    });
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  // ✅ Normalize dropdown values
   const normalizeDropdownValue = (field, val) => {
     const key = field.optionValue || "identifier";
 
@@ -58,6 +77,7 @@ console.log("PARAM:", params.username);
     return val;
   };
 
+  // ✅ Load data
   const loadData = async (identifier) => {
     try {
       setPageLoading(true);
@@ -67,11 +87,26 @@ console.log("PARAM:", params.username);
           ? await fetchApi(identifier)
           : await api.get(fetchApi, { params: { identifier } });
 
-      let data = res?.data?.data ?? res?.data ?? res ?? {};
+      let data = res?.data ?? res ?? {};
 
+      // normalize dropdowns
       fields.forEach((f) => {
         if (f.type === "dropdown") {
-          data[f.name] = normalizeDropdownValue(f, data[f.name]);
+          const val = getValue(data, f.name);
+          const normalized = normalizeDropdownValue(f, val);
+
+          // set nested value
+          const keys = f.name.split(".");
+          let temp = data;
+
+          keys.forEach((k, i) => {
+            if (i === keys.length - 1) {
+              temp[k] = normalized;
+            } else {
+              temp[k] = temp[k] || {};
+              temp = temp[k];
+            }
+          });
         }
       });
 
@@ -94,25 +129,16 @@ console.log("PARAM:", params.username);
     if (identifier) loadData(identifier);
   }, [params, initialData]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
-  };
-
+  // ✅ FIXED validation (nested)
   const validate = () => {
     const newErrors = {};
 
     fields.forEach((f) => {
-      const val = formData[f.name];
+      let val = formData;
+
+      f.name.split(".").forEach((k) => {
+        val = val?.[k];
+      });
 
       if (f.type === "dropdown" && f.multiple) {
         if (!val || val.length === 0) {
@@ -165,10 +191,7 @@ console.log("PARAM:", params.username);
       return (
         <div className="flex gap-4 mt-2">
           {f.options.map((opt) => (
-            <label
-              key={opt.value ?? opt.label}
-              className="flex items-center gap-2 text-gray-700"
-            >
+            <label key={opt.value} className="flex items-center gap-2">
               <input
                 type="radio"
                 name={f.name}
@@ -191,12 +214,7 @@ console.log("PARAM:", params.username);
         value={val}
         onChange={handleChange}
         disabled={f.readOnly}
-        className="
-          w-full px-3 py-2.5 rounded-lg text-sm text-gray-800
-          bg-white border border-gray-300
-          focus:outline-none focus:ring-2 focus:ring-blue-600
-          focus:border-blue-600 transition
-        "
+        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600"
       />
     );
   };
@@ -204,8 +222,8 @@ console.log("PARAM:", params.username);
   if (pageLoading || !formData) {
     return (
       <Layout>
-        <div className="flex items-center justify-center py-20">
-          <div className="bg-white rounded-2xl shadow-sm border border-blue-50 px-8 py-6 text-gray-500">
+        <div className="flex justify-center py-20">
+          <div className="px-6 py-4 bg-white border rounded-lg">
             Loading...
           </div>
         </div>
@@ -216,32 +234,33 @@ console.log("PARAM:", params.username);
   return (
     <Layout>
       <div className="flex justify-center py-6">
-        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border border-blue-50">
+        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border">
 
-          <div className="px-6 py-5 border-b border-blue-50 flex justify-between">
-            <h2 className="text-xl font-bold text-blue-900">{title}</h2>
+          <div className="px-6 py-5 border-b flex justify-between">
+            <h2 className="text-xl font-bold">{title}</h2>
+
             <button
               onClick={() =>
                 onSuccess
                   ? onSuccess()
                   : redirectRoute && router.push(redirectRoute)
               }
-              className="w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-lg"
+              className="w-9 h-9 bg-gray-100 rounded-lg"
             >
               ✕
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {fields.map((f) => {
                 const val =
-                  formData[f.name] ?? (f.multiple ? [] : "");
+                  getValue(formData, f.name) ?? (f.multiple ? [] : "");
 
                 return (
                   <div key={f.name}>
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium">
                       {f.label}
                     </label>
 
@@ -255,7 +274,6 @@ console.log("PARAM:", params.username);
                   </div>
                 );
               })}
-
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
@@ -264,7 +282,7 @@ console.log("PARAM:", params.username);
                 onClick={() =>
                   redirectRoute && router.push(redirectRoute)
                 }
-                className="px-4 py-2 border rounded-lg"
+                className="px-4 py-2 border rounded"
               >
                 Cancel
               </button>
@@ -272,7 +290,7 @@ console.log("PARAM:", params.username);
               <button
                 type="submit"
                 disabled={loading}
-                className="px-5 py-2 bg-blue-700 text-white rounded-lg"
+                className="px-5 py-2 bg-blue-700 text-white rounded"
               >
                 {loading ? "Updating..." : submitButtonText}
               </button>
@@ -284,3 +302,21 @@ console.log("PARAM:", params.username);
     </Layout>
   );
 }
+
+CommonEditPage.propTypes = {
+  title: PropTypes.string,
+  fetchApi: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.func,
+  ]).isRequired,
+  updateApi: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.func,
+  ]).isRequired,
+  redirectRoute: PropTypes.string,
+  fields: PropTypes.array,
+  identifierParam: PropTypes.string,
+  submitButtonText: PropTypes.string,
+  initialData: PropTypes.object,
+  onSuccess: PropTypes.func,
+};
