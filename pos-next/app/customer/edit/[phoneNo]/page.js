@@ -1,23 +1,19 @@
 "use client";
 
 import CommonEditPage from "@/app/components/CommonEditPage";
-import { customerFields } from "../../customerFields";
+import { getCustomerFields } from "../../customerFields";
 import api from "@/app/services/api";
 
 export default function EditCustomerPage() {
 
-  // Fetch customer record from database using phoneNo as query param parameter
- // Fetch customer using phoneNo
   const fetchCustomer = async (phoneNo) => {
     try {
       const response = await api.get("/api/customer/get", {
         params: { phoneNo },
       });
 
-      console.log("✅ Fetched:", response.data);
+      console.log(" Fetched:", response.data);
       
-      // 🚀 FRONTEND FALLBACK: If the backend 'email' field comes back empty, 
-      // populate it directly using the 'identifier' data column string.
       if (response.data && !response.data.email) {
         response.data.email = response.data.identifier;
       }
@@ -25,7 +21,7 @@ export default function EditCustomerPage() {
       return response.data;
     } catch (error) {
       console.error(
-        "❌ Fetch Error:",
+        " Fetch Error:",
         error.response?.data || error.message
       );
       throw error;
@@ -35,7 +31,6 @@ export default function EditCustomerPage() {
   const transformPayload = (data) => {
     return {
       ...data,
-      // Retain tracking schema definition safely
       identifier: data.email, 
       billingAddress: {
         ...data.billingAddress,
@@ -52,16 +47,16 @@ export default function EditCustomerPage() {
 
   const updateCustomer = async (data) => {
     try {
-      const response = await api.post(
+      const response = await api.put(
         "/api/customer/update",
         transformPayload(data)
       );
 
-      console.log("✅ Updated Customer Context:", response.data);
+      console.log(" Updated Customer Context:", response.data);
       return response;
     } catch (error) {
       console.error(
-        "❌ Update Operational Error:",
+        " Update Operational Error:",
         error.response?.data || error.message
       );
       throw error;
@@ -74,8 +69,8 @@ export default function EditCustomerPage() {
       fetchApi={fetchCustomer}
       updateApi={updateCustomer}
       redirectRoute="/customer/list"
-      fields={customerFields}
-      identifierParam="phoneNo" // Keep using phoneNo parameter for backend security route lookup matching
+      fields={getCustomerFields(true)}
+      identifierParam="phoneNo" 
       submitButtonText="Update Customer"
     />
   );

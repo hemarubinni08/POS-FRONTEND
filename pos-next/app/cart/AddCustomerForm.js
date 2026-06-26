@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import api from "../services/api";
+import PropTypes from "prop-types";
 
 export default function AddCustomerForm({ onSaved, onCancel }) {
   const [errors, setErrors] = useState({});
@@ -15,7 +16,6 @@ export default function AddCustomerForm({ onSaved, onCancel }) {
     const customerName = formData.get("customerName")?.trim();
     const phoneNo = formData.get("phoneNo")?.trim();
 
-    // Client-side payload validations
     const validationErrors = {};
     if (!customerName || customerName.length < 2) {
       validationErrors.customerName = "Name must be at least 2 characters long.";
@@ -63,37 +63,45 @@ export default function AddCustomerForm({ onSaved, onCancel }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block mb-1 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-          Customer Full Name
-        </label>
-        <input
-          name="customerName"
-          type="text"
-          required
-          placeholder="e.g. John Doe"
-          className={`w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 transition-all ${
-            errors.customerName ? "border-red-400 focus:ring-red-200" : "border-gray-200 focus:ring-blue-200 focus:border-blue-500"
-          }`}
-        />
+        <label
+  htmlFor="customerName"
+  className="block mb-1 text-xs font-semibold text-gray-600 uppercase tracking-wider"
+>
+  Customer Full Name
+</label>
+
+<input
+  id="customerName"
+  name="customerName"
+  type="text"
+  required
+  placeholder="e.g. John Doe"
+/>
         {errors.customerName && <p className="text-xs text-red-500 mt-1 font-medium">{errors.customerName}</p>}
       </div>
 
       <div>
-        <label className="block mb-1 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-          Mobile Phone Number
-        </label>
-        <input
-          name="phoneNo"
-          type="text"
-          maxLength={10}
-          required
-          placeholder="e.g. 9876543210"
-          className={`w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 transition-all ${
-            errors.phoneNo ? "border-red-400 focus:ring-red-200" : "border-gray-200 focus:ring-blue-200 focus:border-blue-500"
-          }`}
-        />
-        {errors.phoneNo && <p className="text-xs text-red-500 mt-1 font-medium">{errors.phoneNo}</p>}
-      </div>
+  <label
+    htmlFor="phoneNo"
+    className="block mb-1 text-xs font-semibold text-gray-600 uppercase tracking-wider"
+  >
+    Mobile Phone Number
+  </label>
+
+  <input
+    id="phoneNo"
+    name="phoneNo"
+    type="text"
+    maxLength={10}
+    required
+    placeholder="e.g. 9876543210"
+    className={`w-full border rounded-lg p-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 transition-all ${
+      errors.phoneNo
+        ? "border-red-400 focus:ring-red-200"
+        : "border-gray-200 focus:ring-blue-200 focus:border-blue-500"
+    }`}
+  />
+</div>
 
       <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 mt-4">
         <button
@@ -114,4 +122,9 @@ export default function AddCustomerForm({ onSaved, onCancel }) {
       </div>
     </form>
   );
+  
 }
+AddCustomerForm.propTypes = {
+  onSaved: PropTypes.func,
+  onCancel: PropTypes.func,
+};

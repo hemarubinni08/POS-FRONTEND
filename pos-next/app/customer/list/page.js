@@ -18,11 +18,11 @@ export default function CustomerListPage() {
 
       // Updated UI data layout tracking columns grid definitions maps
       columns={[
+        { header: "ID", field: "id" },
         { header: "Customer Name", field: "customerName" },
         { header: "Phone", field: "phoneNo" },
         { header: "Email Identifier", field: "identifier" }, // Displays the clean target email address
         { header: "Party Type", field: "partyType" },
-        { header: "Credit Type", field: "creditType" },
         { header: "Credit Limit (₹)", field: "creditLimit" },
       ]}
 

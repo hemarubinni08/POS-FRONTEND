@@ -6,7 +6,6 @@ import api from "../services/api";
 import AddCustomerForm from "./AddCustomerForm";
 
 export default function CartPage() {
-  // Navigation View State: 'billing' or 'orders'
   const [viewMode, setViewMode] = useState("billing"); 
 
   const [customers, setCustomers] = useState([]);
@@ -14,11 +13,9 @@ export default function CartPage() {
   const [productMap, setProductMap] = useState({});
   const [priceMap, setPriceMap] = useState({});
   
-  // Order list state registries
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   
-  // Search state variables
   const [searchTerm, setSearchTerm] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -29,13 +26,11 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Real-time POS Payment Checkout States
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("CASH"); // CASH, CARD, UPI
+  const [paymentMethod, setPaymentMethod] = useState("CASH"); 
   const [amountReceived, setAmountReceived] = useState("");
   const [processingOrder, setProcessingOrder] = useState(false);
 
-  // NEW STATES: Dynamic Order View Hooks
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isViewOrderModalOpen, setIsViewOrderModalOpen] = useState(false);
   const [singleOrderLoading, setSingleOrderLoading] = useState(false);
@@ -46,14 +41,12 @@ export default function CartPage() {
     loadPrices();
   }, []);
 
-  // Fetch orders from API whenever changing to the orders view mode explicitly
   useEffect(() => {
     if (viewMode === "orders") {
       loadOrders();
     }
   }, [viewMode]);
 
-  // Performance optimized Client-side filtering via useMemo
   const filteredProducts = useMemo(() => {
     const query = searchTerm.toLowerCase().trim();
     if (!query) return products;
@@ -168,7 +161,7 @@ export default function CartPage() {
       }
 
       const identifier =
-        "CART-" + selectedCustomer.customerName.replace(/\s+/g, "-").toUpperCase() + "-" + Date.now().toString().slice(-4);
+        "CART-" + selectedCustomer.customerName.replaceAll(/\s+/g, "-").toUpperCase() + "-" + Date.now().toString().slice(-4);
 
       await api.post("/api/cart/add", {
         identifier,
@@ -278,24 +271,26 @@ export default function CartPage() {
 
       const response = await api.post("/api/order/checkout", orderPayload);
       
-      if (response.data && response.data.success) {
-        alert(`Transaction Completed Successfully! Order Code: ${response.data.identifier}`);
+     if (response?.data?.success) 
+   {
+  alert(
+    `Transaction Completed Successfully! Order Code: ${response.data.identifier}`
+  );
 
-        // Clean state system configurations
-        setCart(null);
-        setCartId("");
-        setCustomerIdentifier("");
-        setCustomerSearch("");
-        setAmountReceived("");
-        setPaymentMethod("CASH");
-        setIsCheckoutModalOpen(false);
+  setIsCheckoutModalOpen(false);
 
-        // STAY ON BILLING WORKSPACE AS REQUESTED
-        setViewMode("billing");
-        
-        // Refresh customer listing references
-        loadCustomers();
-      } else {
+  const orderRes = await api.get("/api/order/get", {
+    params: {
+      identifier: response.data.identifier,
+    },
+  });
+
+  if (orderRes.data) {
+    setSelectedOrder(orderRes.data);
+    setIsViewOrderModalOpen(true);
+  }
+
+} else {
         alert(`Terminal Validation Response Issue: ${response.data?.message || "Check log data registries"}`);
       }
     } catch (err) {
@@ -306,14 +301,11 @@ export default function CartPage() {
     }
   };
 
-  // FETCH EXPLICIT ORDER DETAILS FROM BACKEND ON CLICK
   const handleOpenOrderDetails = async (order) => {
     try {
       setSingleOrderLoading(true);
       setSelectedOrder(order);
       setIsViewOrderModalOpen(true);
-
-      // Matches your backend @GetMapping("/get") inside ApiOrderController
       const res = await api.get("/api/order/get", { 
         params: { identifier: order.identifier } 
       });
@@ -328,10 +320,19 @@ export default function CartPage() {
     }
   };
 
-  // DISPATCH SYSTEM OS PRINT PIPELINE
   const handlePrintReceipt = () => {
-    window.print();
-  };
+  globalThis.print();
+};
+  const clearCompletedSale = () => {
+  setCart(null);
+  setCartId("");
+  setCustomerIdentifier("");
+  setCustomerSearch("");
+  setAmountReceived("");
+  setPaymentMethod("CASH");
+
+  loadCustomers();
+};
 
   const computedChange = useMemo(() => {
     const payable = cart?.totalPrice || 0;
@@ -341,40 +342,18 @@ export default function CartPage() {
 
   return (
     <Layout>
-      {/* CSS STYLESHEET EXCLUSIVELY TO HIDE EVERYTHING EXCEPT THE MODAL CONTENT DURING PRINTING */}
-      <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #printable-order-receipt, #printable-order-receipt * {
-            visibility: visible;
-          }
-          #printable-order-receipt {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 10px;
-            box-shadow: none;
-            border: none;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
-
+      
       <div className="space-y-6 max-w-[1600px] mx-auto p-2 no-print">
-        {/* Navigation Header Menu controls */}
+        
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4">
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-blue-600"></span>
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-blue-600" aria-hidden="true"></span>
+              <span className="text-sm font-medium text-gray-700">Payment Verified</span>
+            </div>
             POS Management Console
           </h1>
           
-          {/* Navigation Tab Group Toggle */}
           <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200">
             <button
               onClick={() => setViewMode("billing")}
@@ -399,12 +378,9 @@ export default function CartPage() {
           </div>
         </div>
 
-        {/* VIEW 1: POS Billing Grid System */}
         {viewMode === "billing" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* LEFT CONTAINER: Checkout & Details */}
             <div className="lg:col-span-7 space-y-6 w-full">
-              {/* Search Combobox Component Block */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 relative">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="font-semibold text-gray-800 text-sm tracking-wide uppercase">Customer Channel Identification</h2>
@@ -440,21 +416,23 @@ export default function CartPage() {
                           <div className="p-3 text-xs text-gray-400 text-center">No record files found matching entry</div>
                         ) : (
                           filteredCustomers.map((c) => (
-                            <div
-                              key={c.identifier || c.phoneNo}
-                              onClick={() => {
-                                setCustomerIdentifier(c.phoneNo);
-                                setCustomerSearch(`${c.customerName} (${c.phoneNo})`);
-                                setIsDropdownOpen(false);
-                              }}
-                              className="p-3 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition-colors"
-                            >
-                              <span className="font-medium text-gray-900">{c.customerName}</span>
-                              <span className="text-xs text-gray-400 font-mono">{c.phoneNo}</span>
-                            </div>
+                            <button
+  key={c.identifier || c.phoneNo}
+  type="button"
+  onClick={() => {
+    setCustomerIdentifier(c.phoneNo);
+    setCustomerSearch(`${c.customerName} (${c.phoneNo})`);
+    setIsDropdownOpen(false);
+  }}
+  className="w-full text-left p-3 text-sm text-gray-700 hover:bg-blue-50 flex justify-between items-center transition-colors focus:outline-none focus:bg-blue-50 focus:ring-2 focus:ring-inset focus:ring-blue-500"
+>
+  <span className="font-medium text-gray-900">{c.customerName}</span>
+  <span className="text-xs text-gray-400 font-mono">{c.phoneNo}</span>
+</button>
                           ))
                         )}
                       </div>
+                      
                     )}
                     {customerSearch && (
                       <button 
@@ -485,7 +463,6 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {/* Cart Table Render Container */}
               {cart && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                   <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
@@ -554,7 +531,6 @@ export default function CartPage() {
                 </div>
               )}
 
-              {/* Financial Summary Block */}
               {cart && (
                 <div className="bg-white rounded-xl text-black shadow-sm p-5 border border-gray-100">
                   <h2 className="font-semibold text-xs tracking-wider uppercase text-gray-500 mb-4">Checkout Valuation Statement</h2>
@@ -590,7 +566,6 @@ export default function CartPage() {
               )}
             </div>
 
-            {/* RIGHT CONTAINER: Interactive Product Grid layout */}
             <div className="lg:col-span-5">
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
                 <div className="flex flex-col gap-3 mb-4">
@@ -607,11 +582,12 @@ export default function CartPage() {
                 <div className="max-h-[72vh] overflow-y-auto pr-1">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {filteredProducts.map((product) => (
-                      <div
-                        key={product.identifier}
-                        onClick={() => addToCart(product.identifier)}
-                        className="bg-white border border-gray-100 hover:border-blue-500 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden"
-                      >
+                      <button
+  key={product.identifier}
+  type="button"
+  onClick={() => addToCart(product.identifier)}
+  className="w-full text-left bg-white border border-gray-100 hover:border-blue-500 rounded-xl p-4 transition-all flex flex-col justify-between group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500/50 hover:shadow-md"
+>
                         <div>
                           <div className="flex justify-between items-start gap-1">
                             <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors text-sm truncate max-w-[120px]">
@@ -632,7 +608,7 @@ export default function CartPage() {
                             + Add
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -641,81 +617,116 @@ export default function CartPage() {
           </div>
         )}
 
-        {/* VIEW 2: Order Summary Dashboard List Interface */}
-        {viewMode === "orders" && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Historical Sales Registers</h2>
-                <p className="text-xs text-gray-400 font-medium">Audit logs displaying last 50 transactions records</p>
-              </div>
-              <button 
-                onClick={loadOrders}
-                className="text-xs border border-gray-200 bg-gray-50 hover:bg-gray-100 font-bold px-3 py-2 rounded-lg transition"
-              >
-                🔄 Refresh Logs
-              </button>
-            </div>
+{viewMode === "orders" && (() => {
+  if (ordersLoading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="py-20 text-center font-medium text-gray-400 text-sm">
+          Parsing terminal records database pipeline...
+        </div>
+      </div>
+    );
+  }
 
-            {ordersLoading ? (
-              <div className="py-20 text-center font-medium text-gray-400 text-sm">
-                Parsing terminal records database pipeline...
-              </div>
-            ) : orders.length === 0 ? (
-              <div className="py-20 text-center font-medium text-gray-400 text-sm">
-                No orders discovered inside current data context scope.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-100 text-sm text-left">
-                  <thead className="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider">
-                    <tr>
-                      <th className="p-4">Order Code / Identifier</th>
-                      <th className="p-4">Payment Method</th>
-                      <th className="p-4 text-center">Original Total</th>
-                      <th className="p-4 text-center">Discount Applied</th>
-                      <th className="p-4 text-right">Final Amount Paid</th>
-                      <th className="p-4 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
-                    {orders.map((order) => (
-                      <tr key={order.identifier || order.id} className="hover:bg-gray-50/50 transition-colors font-mono">
-                        <td className="p-4 font-bold text-gray-900 font-sans tracking-tight">
-                          {order.identifier || `ORD-REF-${order.id}`}
-                        </td>
-                        <td className="p-4">
-                          <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${
-                            order.paymentMethod === "CASH" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
-                            order.paymentMethod === "UPI" ? "bg-purple-50 text-purple-700 border border-purple-100" :
-                            "bg-blue-50 text-blue-700 border border-blue-100"
-                          }`}>
-                            {order.paymentMethod}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center text-gray-400 font-sans">₹{order.originalPrice || 0}</td>
-                        <td className="p-4 text-center text-red-600 font-medium font-sans">-₹{order.discount || 0}</td>
-                        <td className="p-4 text-right font-black text-gray-900 text-base font-sans">₹{order.totalPrice || 0}</td>
-                        <td className="p-4 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenOrderDetails(order)}
-                            className="bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold font-sans transition-all border border-blue-100 shadow-2xs"
-                          >
-                            👁️ View Details
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
+  if (orders.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="py-20 text-center font-medium text-gray-400 text-sm">
+          No orders discovered inside current data context scope.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">Historical Sales Registers</h2>
+          <p className="text-xs text-gray-400 font-medium">Audit logs displaying last 50 transactions records</p>
+        </div>
+        <button 
+          onClick={loadOrders}
+          className="text-xs border border-gray-200 bg-gray-50 hover:bg-gray-100 font-bold px-3 py-2 rounded-lg transition"
+        >
+          🔄 Refresh Logs
+        </button>
       </div>
 
-      {/* MODAL 1: Floating Add Customer Profile Backdrop Wrapper */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-100 text-sm text-left">
+          <thead className="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider">
+            <tr>
+              <th className="p-4">Order Code / Identifier</th>
+              <th className="p-4">Payment Method</th>
+              <th className="p-4 text-center">Original Total</th>
+              <th className="p-4 text-center">Discount Applied</th>
+              <th className="p-4 text-right">Final Amount Paid</th>
+              <th className="p-4 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
+  {orders.map((order) => {
+    let paymentMethodClass;
+
+    if (order.paymentMethod === "CASH") {
+      paymentMethodClass =
+        "bg-emerald-50 text-emerald-700 border border-emerald-100";
+    } else if (order.paymentMethod === "UPI") {
+      paymentMethodClass =
+        "bg-purple-50 text-purple-700 border border-purple-100";
+    } else {
+      paymentMethodClass =
+        "bg-blue-50 text-blue-700 border border-blue-100";
+    }
+
+    return (
+      <tr
+        key={order.identifier || order.id}
+        className="hover:bg-gray-50/50 transition-colors font-mono"
+      >
+        <td className="p-4 font-bold text-gray-900 font-sans tracking-tight">
+          {order.identifier || `ORD-REF-${order.id}`}
+        </td>
+
+        <td className="p-4">
+          <span
+            className={`px-2.5 py-1 text-xs font-bold rounded-md ${paymentMethodClass}`}
+          >
+            {order.paymentMethod}
+          </span>
+        </td>
+
+        <td className="p-4 text-center text-gray-400 font-sans">
+          ₹{order.originalPrice || 0}
+        </td>
+
+        <td className="p-4 text-center text-red-600 font-medium font-sans">
+          -₹{order.discount || 0}
+        </td>
+
+        <td className="p-4 text-right font-black text-gray-900 text-base font-sans">
+          ₹{order.totalPrice || 0}
+        </td>
+
+        <td className="p-4 text-center">
+          <button
+            type="button"
+            onClick={() => handleOpenOrderDetails(order)}
+            className="bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold font-sans transition-all border border-blue-100 shadow-2xs"
+          >
+            👁️ View Details
+          </button>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
+        </table>
+      </div>
+    </div>
+  );
+})()}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity no-print">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100">
@@ -738,7 +749,6 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* MODAL 2: Interactive Real-time POS Payment Counter Overlay */}
       {isCheckoutModalOpen && cart && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity no-print">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 transform transition-all duration-300">
@@ -761,43 +771,59 @@ export default function CartPage() {
                 <span className="text-2xl font-black font-mono text-blue-700">₹{cart.totalPrice || 0}</span>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Payment Mode</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {["CASH", "CARD", "UPI"].map((method) => (
-                    <button
-                      key={method}
-                      type="button"
-                      onClick={() => setPaymentMethod(method)}
-                      className={`py-3 rounded-xl border text-sm font-bold transition-all flex flex-col items-center justify-center gap-1 ${
-                        paymentMethod === method
-                          ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20"
-                          : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      {method === "CASH" && "💵 Cash"}
-                      {method === "CARD" && "💳 Card Swipe"}
-                      {method === "UPI" && "📱 UPI / QR"}
-                    </button>
-                  ))}
-                </div>
-              </div>
+             <fieldset className="space-y-2">
+  <legend className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+    Payment Mode
+  </legend>
+  
+  <div className="grid grid-cols-3 gap-3">
+    {["CASH", "CARD", "UPI"].map((method) => {
+      const isSelected = paymentMethod === method;
+      
+      return (
+        <button
+          key={method}
+          type="button"
+          onClick={() => setPaymentMethod(method)}
+          aria-pressed={isSelected}
+          className={`py-3 rounded-xl border text-sm font-bold transition-all flex flex-col items-center justify-center gap-1 ${
+            isSelected
+              ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20"
+              : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+          }`}
+        >
+          {method === "CASH" && "💵 Cash"}
+          {method === "CARD" && "💳 Card Swipe"}
+          {method === "UPI" && "📱 UPI / QR"}
+        </button>
+      );
+    })}
+  </div>
+</fieldset>
 
               {paymentMethod === "CASH" ? (
                 <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-600 uppercase">Cash Amount Received</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-3 text-gray-400 font-bold text-base">₹</span>
-                      <input
-                        type="number"
-                        placeholder="Enter paid bills amount..."
-                        value={amountReceived}
-                        onChange={(e) => setAmountReceived(e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg pl-8 pr-4 py-2.5 bg-white font-mono text-lg font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                      />
-                    </div>
-                  </div>
+  {/* Added htmlFor attribute */}
+  <label 
+    htmlFor="cash-amount" 
+    className="text-xs font-bold text-gray-600 uppercase"
+  >
+    Cash Amount Received
+  </label>
+  
+  <div className="relative">
+    <span className="absolute left-3 top-3 text-gray-400 font-bold text-base">₹</span>
+    <input
+      id="cash-amount" 
+      type="number"
+      placeholder="Enter paid bills amount..."
+      value={amountReceived}
+      onChange={(e) => setAmountReceived(e.target.value)}
+      className="w-full border border-gray-200 rounded-lg pl-8 pr-4 py-2.5 bg-white font-mono text-lg font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+    />
+  </div>
+</div>
 
                   <div className="flex gap-2">
                     {[500, 1000].map((quickCash) => (
@@ -849,7 +875,6 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* MODAL 3: PRODUCT ITEMIZATION VIEWER WITH PRINT ACTION IMPLEMENTED */}
       {isViewOrderModalOpen && selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity animate-fade-in">
           <div 
@@ -857,23 +882,26 @@ export default function CartPage() {
             className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-100 animate-scale-up"
           >
             
-            {/* Modal Header */}
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50">
               <div>
                 <h3 className="font-bold text-gray-900 text-base">Invoice Registry: {selectedOrder.identifier || `ORD-REF-${selectedOrder.id}`}</h3>
                 <p className="text-xs text-gray-400 mt-0.5 font-sans font-medium">Detailed customer purchases summary breakdown</p>
               </div>
               <button
-                onClick={() => { setIsViewOrderModalOpen(false); setSelectedOrder(null); }}
+  onClick={() => {
+    setIsViewOrderModalOpen(false);
+    setSelectedOrder(null);
+
+    clearCompletedSale();
+  }}
+
                 className="text-gray-400 hover:text-gray-600 text-2xl font-semibold leading-none focus:outline-none no-print"
               >
                 &times;
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
-              {/* Meta details dashboard box */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 border border-gray-100 rounded-xl p-4 text-xs">
                 <div>
                   <span className="block font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Customer Channel Identifier</span>
@@ -889,52 +917,68 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {/* Items Table / Product Manifest Breakdown */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Purchased Products List</h4>
-                
-                {singleOrderLoading ? (
-                  <div className="p-8 text-center text-xs text-gray-400 font-medium">
-                    Retrieving customer product manifest directly from target sequence database context...
-                  </div>
-                ) : selectedOrder.entryList && selectedOrder.entryList.length > 0 ? (
-                  <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm">
-                    <table className="min-w-full divide-y divide-gray-100 text-xs text-left">
-                      <thead className="bg-gray-50/70 text-gray-500 font-bold uppercase">
-                        <tr>
-                          <th className="p-3">Product Name / Specs</th>
-                          <th className="p-3 text-center">Qty Bought</th>
-                          <th className="p-3 text-center">Unit Price</th>
-                          <th className="p-3 text-right">Extended Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
-                        {selectedOrder.entryList.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-50/40">
-                            <td className="p-3">
-                              <div className="font-bold text-gray-900">
-                                {productMap[item.productIdentifier]?.brand || "Product ID:"} {item.productIdentifier}
-                              </div>
-                              <div className="text-[10px] font-mono text-gray-400">
-                                {productMap[item.productIdentifier]?.model || "Item Manifest Ref"}
-                              </div>
-                            </td>
-                            <td className="p-3 text-center font-bold font-mono text-blue-600 bg-blue-50/20">{item.quantity}</td>
-                            <td className="p-3 text-center font-mono text-gray-500">₹{item.unitPrice || 0}</td>
-                            <td className="p-3 text-right font-black font-mono text-gray-900">₹{item.totalPrice || 0}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="p-6 bg-gray-50/50 rounded-xl text-center text-xs text-gray-400 border border-dashed border-gray-200">
-                    No matching itemization maps found in database records.
-                  </div>
-                )}
-              </div>
+<div className="space-y-2">
+  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+    Purchased Products List
+  </h4>
 
-              {/* Balance Ledger Sheet Footer */}
+  {(() => {
+    if (singleOrderLoading) {
+      return (
+        <div className="p-8 text-center text-xs text-gray-400 font-medium">
+          Retrieving customer product manifest directly from target sequence database context...
+        </div>
+      );
+    }
+
+    if (!selectedOrder.entryList?.length) {
+      return (
+        <div className="p-6 bg-gray-50/50 rounded-xl text-center text-xs text-gray-400 border border-dashed border-gray-200">
+          No matching itemization maps found in database records.
+        </div>
+      );
+    }
+
+    return (
+      <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+        <table className="min-w-full divide-y divide-gray-100 text-xs text-left">
+          <thead className="bg-gray-50/70 text-gray-500 font-bold uppercase">
+            <tr>
+              <th className="p-3">Product Name / Specs</th>
+              <th className="p-3 text-center">Qty Bought</th>
+              <th className="p-3 text-center">Unit Price</th>
+              <th className="p-3 text-right">Extended Total</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
+            {selectedOrder.entryList.map((item) => (
+              <tr key={item.id} className="hover:bg-gray-50/40">
+                <td className="p-3">
+                  <div className="font-bold text-gray-900">
+                    {productMap[item.productIdentifier]?.brand || "Product ID:"} {item.productIdentifier}
+                  </div>
+                  <div className="text-[10px] font-mono text-gray-400">
+                    {productMap[item.productIdentifier]?.model || "Item Manifest Ref"}
+                  </div>
+                </td>
+                <td className="p-3 text-center font-bold font-mono text-blue-600 bg-blue-50/20">
+                  {item.quantity}
+                </td>
+                <td className="p-3 text-center font-mono text-gray-500">
+                  ₹{item.unitPrice || 0}
+                </td>
+                <td className="p-3 text-right font-black font-mono text-gray-900">
+                  ₹{item.totalPrice || 0}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  })()}
+</div>
+
               <div className="border-t border-gray-100 pt-4 space-y-2 text-xs font-mono">
                 <div className="flex justify-between text-gray-500">
                   <span>Gross Valuation Accumulation</span>
@@ -951,16 +995,18 @@ export default function CartPage() {
               </div>
             </div>
 
-            {/* Modal Actions Footer */}
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 no-print">
               <button
-                type="button"
-                onClick={() => { setIsViewOrderModalOpen(false); setSelectedOrder(null); }}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg px-4 py-2 text-xs transition"
-              >
-                Close
-              </button>
-              {/* PRINT BUTTON INTERFACE REQUEST */}
+  type="button"
+  onClick={() => {
+    setIsViewOrderModalOpen(false);
+    setSelectedOrder(null);
+
+    clearCompletedSale();
+  }}
+>
+  Close
+</button>
               <button
                 type="button"
                 onClick={handlePrintReceipt}
@@ -973,6 +1019,7 @@ export default function CartPage() {
           </div>
         </div>
       )}
+      </div>
     </Layout>
   );
 }
