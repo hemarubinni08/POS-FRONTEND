@@ -27,12 +27,12 @@ const WarehousePage = () => {
 
   const fetchWarehouses = async () => {
     try {
-      const response = await listItems(
-        "warehouse",
+      const response = await listItems("warehouse", {
         page,
-        5,
-        searchTerm
-      );
+        sizePerPage: 5,
+        sortField: "identifier",
+        search: searchTerm,
+      });
 
       setData(response.content || []);
       setTotalPages(response.totalPages || 0);
@@ -149,6 +149,7 @@ const WarehousePage = () => {
     {
       name: "identifier",
       label: "Warehouse Name",
+      disabled: true,
     },
     {
       name: "country",

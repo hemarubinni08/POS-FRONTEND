@@ -150,6 +150,7 @@ const UnitPage = () => {
     {
       name: "identifier",
       label: "Identifier",
+      disabled:true
     },
     {
       name: "description",

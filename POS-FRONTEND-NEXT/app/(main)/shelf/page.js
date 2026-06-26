@@ -180,6 +180,7 @@ const ShelfPage = () => {
     {
       name: "identifier",
       label: "Identifier",
+      disabled:true,
     },
   ];
 

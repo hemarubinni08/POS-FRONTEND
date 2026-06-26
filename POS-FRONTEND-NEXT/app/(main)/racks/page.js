@@ -216,6 +216,7 @@ const RackPage = () => {
     {
       name: "identifier",
       label: "Rack Name",
+      disabled:true,
     },
 
     {

@@ -198,7 +198,7 @@ const BrandPage = () => {
   ];
 
   const editFields = [
-    { name: "identifier", label: "Identifier" },
+    { name: "identifier", label: "Identifier",disabled:true },
     { name: "description", label: "Description" },
   ];
 
